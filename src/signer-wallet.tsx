@@ -58,14 +58,14 @@ const SignerController = ({
 
   if (activeKey) {
     return (
-      <div>
-        <p>Signer connected. Your public key is: {activeKey}</p>
+      <div style={{color:"white"}} >
+        <p style={{color:"white"}} >Signer connected. Your public key is: {activeKey}</p>
       </div>
     );
   }
 
   return (
-    <div>
+    <div  style={{color:"white"}} >
       Signer not connected. Please{" "}
       <button onClick={Signer.sendConnectionRequest}>connect Signer</button>.
     </div>

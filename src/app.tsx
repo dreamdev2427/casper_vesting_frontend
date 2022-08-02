@@ -40,19 +40,9 @@ const SignSelect = ({
         >
           <Typography color='#055ef0'>Signer</Typography>
         </Button>
-        <Button variant="contained" style={{ backgroundColor: '#e8f5fc', marginLeft: "10px" }}
-          onClick={() => {
-            selectSign(SignProviders.Torus);
-          }}
-        >
-          <Typography color='#055ef0'>Torus</Typography>
-        </Button>
       </div>
       {signProvider === SignProviders.Signer && (
         <SignerController activeKey={activeKey} setActiveKey={setActiveKey} setClient={setClient} />
-      )}
-      {signProvider === SignProviders.Torus && (
-        <TorusController activeKey={activeKey} setActiveKey={setActiveKey} setClient={setClient} />
       )}
     </div>
   );
