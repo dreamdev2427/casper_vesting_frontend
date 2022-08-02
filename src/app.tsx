@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Signer, DeployUtil, CasperServiceByJsonRPC, CLPublicKey } from "casper-js-sdk";
+import { Button, Typography } from "@mui/material";
 
 import { TABS, SignProviders } from "./constants";
 import NativeTransfer from "./views/native-transfer";
@@ -10,6 +11,7 @@ import SignerController from "./signer-wallet";
 
 import type { ActiveKeyType, SetClientFnType } from "./types.d";
 import {NODE_URL} from "./constants";
+import Vesting from "./components/Vesting";
 
 type SelectSignFnType = (provider: SignProviders) => void;
 type SetActiveKeyFnType = (key: ActiveKeyType) => void;
@@ -28,23 +30,23 @@ const SignSelect = ({
   setClient: SetClientFnType;
 }) => {
   return (
-    <div className="w-100 bg-white pa3 bb flex justify-between items-center">
+    <div className="w-100 pa3 bb flex justify-between items-center">
       <div>
-        <button
+        <Button variant="contained" style={{ backgroundColor: '#e8f5fc' }}
           onClick={() => {
             selectSign(SignProviders.Signer);
             setClient(NODE_URL);
           }}
         >
-          Signer
-        </button>
-        <button
+          <Typography color='#055ef0'>Signer</Typography>
+        </Button>
+        <Button variant="contained" style={{ backgroundColor: '#e8f5fc', marginLeft: "10px" }}
           onClick={() => {
             selectSign(SignProviders.Torus);
           }}
         >
-          Torus
-        </button>
+          <Typography color='#055ef0'>Torus</Typography>
+        </Button>
       </div>
       {signProvider === SignProviders.Signer && (
         <SignerController activeKey={activeKey} setActiveKey={setActiveKey} setClient={setClient} />
@@ -93,24 +95,35 @@ const App = () => {
 
       const targetPubKey = deploy.session.transfer ? (deploy.session.transfer?.args.args.get("target") as CLPublicKey).toHex() : activeKey;
 
-      const signedDeployJSON = await Signer.sign(
+      let signedDeployJSON;
+      try{
+      signedDeployJSON = await Signer.sign(
         deployJSON,
         activeKey,
         targetPubKey
       );
+      }catch(err){
+        console.error("1 : ", err);
+      }
 
-      const reconstructedDeploy =
-        DeployUtil.deployFromJson(signedDeployJSON).unwrap();
-
-      const { deploy_hash: deployHash }= await client.deploy(reconstructedDeploy);
-
-      setDeployHash(deployHash);
+      const reconstructedDeploy = DeployUtil.deployFromJson(signedDeployJSON).unwrap();
+      try{
+        const { deploy_hash: deployHash }= await client.deploy(reconstructedDeploy);
+        setDeployHash(deployHash);
+      }catch(err)
+      {
+        console.error("2 : ", err);
+      }
     }
 
     if (signProvider === SignProviders.Torus) {
-      const { deploy_hash: deployHash }= await client.deploy(deploy);
-
-      setDeployHash(deployHash);
+      try{
+        const { deploy_hash: deployHash }= await client.deploy(deploy);
+        setDeployHash(deployHash);
+      }catch(err)
+      {
+        console.error("3 : ", err);
+      }
     }
   };
 
@@ -142,19 +155,15 @@ const App = () => {
   };
 
   return (
-    <div className="bg-dark-gray vh-100">
+    <div style={{ backgroundColor:"black" }}>
       <SignSelect
         signProvider={signProvider}
         selectSign={selectSign}
         activeKey={activeKey}
         setActiveKey={setActiveKey}
         setClient={setCasperClient}
-      />
-      <div className="w-100 h3 bg-white pa3 mb3">
-        <button onClick={setCurrentTab(TABS.TRANSFER)}>Transfer</button>
-        <button onClick={setCurrentTab(TABS.INSTALL_CEP47)}>Install CEP47</button>
-      </div>
-      <div className="w-50 center bg-white pa3">{renderProperContent()}</div>
+      />     
+    <Vesting />
     </div>
   );
 };

@@ -21,7 +21,7 @@ const NativeTransfer = ({
   const createDeploy = () => {
     console.log("0")
     const receiverClPubKey = CLPublicKey.fromHex(
-      "02036d0a481019747b6a761651fa907cc62c0d0ebd53f4152e9f965945811aed2ba8"
+      "02035b320d0686db37ff50b0d7765b2c96de7acc32a2010979a027330d05570cf003"
     );
     console.log("1")
     const senderKey = CLPublicKey.fromHex(activeKey);
