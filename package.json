@@ -17,7 +17,7 @@
     "@types/react": "^17.0.39",
     "@types/react-dom": "^17.0.11",
     "casper-cep47-js-client": "1.0.0",
-    "casper-js-sdk": "2.8.0",
+    "casper-js-sdk": "2.9.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-notifications": "^1.7.4",
