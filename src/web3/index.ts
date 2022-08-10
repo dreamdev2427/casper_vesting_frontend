@@ -13,17 +13,17 @@ import {
   import { BigNumber, BigNumberish } from "ethers";
   import {
     CHAIN_NAME,
-    FarmEvents,
     MASTER_CHEF_CONTRACT_HASH,
     NODE_ADDRESS,
-    RouterEvents,
     TRANSFER_FEE,
   } from "./config/constant";
   import { useEffect } from "react";
+  
   // import useWalletStatus from "../store/useWalletStatus";
   import { amountWithoutDecimals, getDeploy } from "../utils/utils";
   import { Token } from "../config/interface/token";
   import { MasterChefClient } from "./clients/master-chef-client";
+
 
   export default function useCasperWeb3Provider() {
     const { setActiveAddress, activeAddress, isConnected } = useNetworkStatus();
@@ -50,57 +50,7 @@ import {
       }
     }
   
-    function initialize() {
-      interface CustomEvent {
-        detail: {
-          activeKey: string;
-          isConnected: boolean;
-          isUnlocked: boolean;
-        };
-      }
-      try {
-        window.addEventListener("signer:locked", () => {
-          setActiveAddress("");
-        });
-        window.addEventListener("signer:disconnected", () => {
-          setActiveAddress("");
-        });
-        window.addEventListener(
-          "signer:connected",
-          async (event: any | CustomEvent) => {
-            const { activeKey, isConnected, isUnlocked } = event.detail;
-            if (!!activeKey && activeKey !== "" && isConnected && isUnlocked) {
-              setActiveAddress(activeKey);
-              // addAccount(activeKey);
-            } else setActiveAddress("");
-          }
-        );
-        window.addEventListener(
-          "signer:unlocked",
-          async (event: any | CustomEvent) => {
-            const { activeKey, isConnected, isUnlocked } = event.detail;
-            if (!!activeKey && activeKey !== "" && isConnected && isUnlocked) {
-              setActiveAddress(activeKey);
-              // addAccount(activeKey);
-            } else setActiveAddress("");
-          }
-        );
-        window.addEventListener(
-          "signer:activeKeyChanged",
-          async (event: any | CustomEvent) => {
-            const { activeKey, isConnected, isUnlocked } = event.detail;
-            if (!!activeKey && activeKey !== "" && isConnected && isUnlocked) {
-              setActiveAddress(activeKey);
-              // addAccount(activeKey);
-            } else setActiveAddress("");
-          }
-        );
-      } catch (err: any | Error) {
-        console.error(err);
-      }
-    }
-  
-    async function allowanceOf(contractHash: string, spender: string) {
+    async function allowanceOf(contractHash: string, spender: string, activeAddress:string) {
       const erc20 = new ERC20SignerClient(NODE_ADDRESS, CHAIN_NAME, undefined);
       await erc20.setContractHash(contractHash);
       let allowance;
@@ -115,7 +65,10 @@ import {
       return allowance;
     }
   
-    async function balanceOf(contractHash: string) {
+    async function balanceOf(contractHash: string, activeAddress:string) {
+
+      console.log("activeAddress = ",activeAddress);
+
       const erc20 = new ERC20SignerClient(NODE_ADDRESS, CHAIN_NAME, undefined);
       await erc20.setContractHash(contractHash);
       let balance;
@@ -127,7 +80,7 @@ import {
       return balance;
     }
   
-    async function approve(amount: BigNumberish, address: string, spender: string, setPending: React.Dispatch<React.SetStateAction<boolean>>) {
+    async function approve(amount: BigNumberish, address: string, spender: string, setPending: React.Dispatch<React.SetStateAction<boolean>>, activeAddress:string) {
       if (!isConnected) return;
       let txHash = "";
       setPending(true);
@@ -156,7 +109,7 @@ import {
       }
     }
   
-    async function getCSPRBalance() {
+    async function getCSPRBalance(activeAddress:string) {
       const client = new CasperServiceByJsonRPC(NODE_ADDRESS);
       let stateRootHash = await client.getStateRootHash();
       let accountBalance = BigNumber.from(0);
@@ -169,7 +122,7 @@ import {
       return amountWithoutDecimals(BigNumber.from(accountBalance), 9);
     }
     
-    async function getContractHashFromPackage(packageHash: string) {
+    async function getContractHashFromPackage(packageHash: string, activeAddress:string) {
       const client = new CasperServiceByJsonRPC(NODE_ADDRESS);
           const { block } = await client.getLatestBlockInfo();
   
@@ -188,7 +141,7 @@ import {
       }
     }
       
-    async function deposit(farm: {}, amount: BigNumberish, setPending: React.Dispatch<React.SetStateAction<boolean>>) {
+    async function deposit(farm: {}, amount: BigNumberish, setPending: React.Dispatch<React.SetStateAction<boolean>>, activeAddress:string) {
       if (!isConnected) return;
       setPending(true);
       let txHash;
@@ -215,7 +168,7 @@ import {
       }
     }
   
-    async function withdraw(farm: {}, amount: BigNumberish, setPending: React.Dispatch<React.SetStateAction<boolean>>) {
+    async function withdraw(farm: {}, amount: BigNumberish, setPending: React.Dispatch<React.SetStateAction<boolean>>, activeAddress:string) {
       if (!isConnected) return;
       setPending(true);
       let txHash;
@@ -242,7 +195,7 @@ import {
       }
     }
   
-    async function enterStaking(amount: BigNumberish, setPending: React.Dispatch<React.SetStateAction<boolean>>) {
+    async function enterStaking(amount: BigNumberish, setPending: React.Dispatch<React.SetStateAction<boolean>>, activeAddress:string) {
       if (!isConnected) return;
       setPending(true);
       let txHash;
@@ -269,7 +222,7 @@ import {
       }
     }
   
-    async function leaveStaking(amount: BigNumberish, setPending: React.Dispatch<React.SetStateAction<boolean>>) {
+    async function leaveStaking(amount: BigNumberish, setPending: React.Dispatch<React.SetStateAction<boolean>>, activeAddress:string) {
       if (!isConnected) return;
       setPending(true);
       let txHash;
@@ -296,7 +249,7 @@ import {
       }
     }
   
-    async function harvest(farm: {}, setPending: React.Dispatch<React.SetStateAction<boolean>>) {
+    async function harvest(farm: {}, setPending: React.Dispatch<React.SetStateAction<boolean>>, activeAddress:string) {
       if (!isConnected) return;
       setPending(true);
       let txHash;
@@ -322,12 +275,7 @@ import {
         return txHash;
       }
     }
-  
-    useEffect(() => {
-      initialize();
-      activate(false);
-    }, []);
-  
+    
     return {
       activate,
       disconnect,
@@ -346,7 +294,7 @@ import {
   export const routerEventParser = (
     {
       eventNames,
-    }: { eventNames: RouterEvents[] },
+    }: { eventNames: [] },
     value: any
   ) => {
     if (value.body.DeployProcessed.execution_result.Success) {
@@ -366,8 +314,7 @@ import {
               if (clValue && clValue instanceof CLMap) {
                 const event = clValue.get(CLValueBuilder.string("event_type"));
                 if (
-                  event &&
-                  eventNames.includes(event.value())
+                  event 
                 ) {
                   acc = [...acc, { name: event.value(), clValue }];
                 }
@@ -396,7 +343,7 @@ import {
   export const farmEventParser = (
     {
       eventNames,
-    }: { eventNames: FarmEvents[] },
+    }: { eventNames: [] },
     value: any
   ) => {
     if (value.body.DeployProcessed.execution_result.Success) {
@@ -416,8 +363,7 @@ import {
               if (clValue && clValue instanceof CLMap) {
                 const event = clValue.get(CLValueBuilder.string("event_type"));
                 if (
-                  event &&
-                  eventNames.includes(event.value())
+                  event
                 ) {
                   acc = [...acc, { name: event.value(), clValue }];
                 }

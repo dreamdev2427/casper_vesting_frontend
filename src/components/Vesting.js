@@ -10,7 +10,7 @@ import { BigNumber } from "ethers";
 
 // import ConnectWallet from "../Common/ConnetWallet";
 import { dsUtilNumberWithCommas } from "../utilities";
-import {VestingContractAddress, vestingTokenSymbol } from "../config";
+import {VestingContractAddress, vestingTokenAddress, vestingTokenSymbol } from "../config";
 import useCasperWeb3Provider from "../web3";
 
 
@@ -42,7 +42,20 @@ const PrettoSlider = styled(Slider)({
 
 const Vesting = () => {
 
+    const {
+        activate,
+        balanceOf,
+        allowanceOf,
+        isPairExist,
+        getReserves,
+        wrapCspr,
+        approve,
+        swapExactIn,
+        swapExactOut,
+      } = useCasperWeb3Provider();
+
     const isMobile = useMediaQuery({ query: '(max-width: 1224px)' });
+    const activeAddress = useSelector(state => state.auth.currentWallet);
 
     const [switchPanal, setSwitchPanal] = useState(true);
     const [totalVolumnInVesting, setTotalVolumnVested] = useState(0);
@@ -53,19 +66,36 @@ const Vesting = () => {
     const [hourlyVesting, sethourlyVesting] = useState(0);
     const [claimableAmount, setPendingRewards] = useState(0);
 
+    useEffect(() => {
+        getTotalVoumnOfVesting();
+    }, [])
+
     const getTotalVoumnOfVesting = async () => {
-        
+        const balance = await balanceOf(vestingTokenAddress, activeAddress);
+        console.log("balance = ", balance);
+    }
+
+    const getMyTokenBalance = async () => {
+
+    }
+
+    const getMyVestedAmount = async () => {
+
+    }
+
+    const getHourlyVesting = async () => {
+
     }
 
     const onClickMax = async () => {        
 
     }    
       
-    const onClickStake = async () => {        
-
+    const handleVest = async () => {        
+        await getTotalVoumnOfVesting();
     }
 
-    const onClickClaim = async () => {       
+    const handleClaim = async () => {       
 
     }
 
@@ -179,7 +209,7 @@ const Vesting = () => {
                                                 </Grid>
                                             </Grid>
                                             <Button variant="contained" size="large" fullWidth
-                                             onClick={() => {onClickStake()}}
+                                             onClick={() => {handleVest()}}
                                             >Vest {vestingTokenSymbol}</Button>
                                         </>
                                     ) : (<>
@@ -204,7 +234,7 @@ const Vesting = () => {
                                         <Grid container spacing={2}>
                                             <Grid item xs={12} sm={12}>
                                                 <Button variant="contained" size="large" fullWidth
-                                                    onClick={() => { onClickClaim() }}
+                                                    onClick={() => { handleClaim() }}
                                                 >Claim {vestingTokenSymbol}</Button>
                                             </Grid>
                                         </Grid>

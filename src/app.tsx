@@ -12,6 +12,8 @@ import SignerController from "./signer-wallet";
 import type { ActiveKeyType, SetClientFnType } from "./types.d";
 import {NODE_URL} from "./constants";
 import Vesting from "./components/Vesting";
+import { useDispatch } from "react-redux";
+import { setConnectedWalletAddress } from "./store/actions/auth.actions";
 
 type SelectSignFnType = (provider: SignProviders) => void;
 type SetActiveKeyFnType = (key: ActiveKeyType) => void;
@@ -29,6 +31,13 @@ const SignSelect = ({
   setActiveKey: SetActiveKeyFnType;
   setClient: SetClientFnType;
 }) => {
+  const dispatch = useDispatch();
+
+  const setActiveKeyToStore = (key:any) => {
+    setConnectedWalletAddress(key)(dispatch);
+    setActiveKey(key);
+  }
+
   return (
     <div className="w-100 pa3 bb flex justify-between items-center">
       <div>
@@ -42,7 +51,7 @@ const SignSelect = ({
         </Button>
       </div>
       {signProvider === SignProviders.Signer && (
-        <SignerController activeKey={activeKey} setActiveKey={setActiveKey} setClient={setClient} />
+        <SignerController activeKey={activeKey} setActiveKey={setActiveKeyToStore} setClient={setClient} />
       )}
     </div>
   );

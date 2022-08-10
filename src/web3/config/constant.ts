@@ -1,25 +1,3 @@
-export enum RouterEvents {
-    CreatePair = "create_pair",
-    AddLiquidity = "add_liquidity",
-    RemoveLiquidity = "remove_liquidity",
-    SwapExactIn = "swap_exact_in",
-    SwapExactOut = "swap_exact_out",
-  }
-  
-  export enum FarmEvents {
-    Construct = "construct",
-    UpdateMultiplier = "update_multiplier",
-    AddPool = "add_pool",
-    SetPool = "set_pool",
-    UpdatePool = "update_pool",
-    MassUpdatePools = "mass_update_pools",
-    Deposit = "deposit",
-    Withdraw = "withdraw",
-    EnterStaking = "enter_staking",
-    LeaveStaking = "leave_staking",
-    Harvest = "harvest",
-  }
-  
   export const NODE_ADDRESS =
     process.env.REACT_APP_CASPER_NODE_ADDRESS ||
     "https://casper.the-swappery.io/api/cors?url=http://5.9.20.162:7777/rpc";

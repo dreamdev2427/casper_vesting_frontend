@@ -22,7 +22,7 @@ export const getCurrentUser = () => dispatch => {
 }
 
 export const setConnectedWalletAddress = (address) => dispatch => {
-    console.log("[ACTION] address  = ", address);
+    // console.log("[ACTION] address  = ", address);
     dispatch({
         type: SET_WALLET_ADDR,
         payload: address

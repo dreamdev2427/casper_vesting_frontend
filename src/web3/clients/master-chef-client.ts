@@ -13,7 +13,7 @@ import { concat } from "@ethersproject/bytes";
 import { BigNumberish } from "@ethersproject/bignumber";
 import { helpers, constants, utils } from "casper-js-client-helper";
 import ContractClient from "casper-js-client-helper/dist/casper-contract-client";
-import { CONTRACT_PACKAGE_PREFIX, RouterEvents } from "../config/constant";
+import { CONTRACT_PACKAGE_PREFIX } from "../config/constant";
 import { contractCallFn } from "./utils";
 const {
     setClient,
@@ -141,7 +141,7 @@ export class MasterChefClient extends ContractClient {
             paymentAmount,
             runtimeArgs,
             cb: (deployHash: string) =>
-                this.addPendingDeploy(RouterEvents.AddLiquidity, deployHash),
+                {},
             ttl,
         } as MasterChefClient.ContractCallWithSignerPayload);
     }
@@ -164,7 +164,7 @@ export class MasterChefClient extends ContractClient {
             paymentAmount,
             runtimeArgs,
             cb: (deployHash: string) =>
-                this.addPendingDeploy(RouterEvents.AddLiquidity, deployHash),
+                {},
             ttl,
         } as MasterChefClient.ContractCallWithSignerPayload);
     }
@@ -184,7 +184,7 @@ export class MasterChefClient extends ContractClient {
             paymentAmount,
             runtimeArgs,
             cb: (deployHash: string) =>
-                this.addPendingDeploy(RouterEvents.AddLiquidity, deployHash),
+                {},
             ttl,
         } as MasterChefClient.ContractCallWithSignerPayload);
     }
@@ -205,7 +205,7 @@ export class MasterChefClient extends ContractClient {
             paymentAmount,
             runtimeArgs,
             cb: (deployHash: string) =>
-                this.addPendingDeploy(RouterEvents.AddLiquidity, deployHash),
+                {},
             ttl,
         } as MasterChefClient.ContractCallWithSignerPayload);
     }
@@ -226,7 +226,7 @@ export class MasterChefClient extends ContractClient {
             paymentAmount,
             runtimeArgs,
             cb: (deployHash: string) =>
-                this.addPendingDeploy(RouterEvents.AddLiquidity, deployHash),
+                {},
             ttl,
         } as MasterChefClient.ContractCallWithSignerPayload);
     }
