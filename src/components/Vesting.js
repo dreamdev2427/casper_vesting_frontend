@@ -6,10 +6,13 @@ import SearchIcon from '@mui/icons-material/Search';
 import {useSelector} from "react-redux";
 import {NotificationManager} from "react-notifications";
 import { useMediaQuery } from 'react-responsive';
+import { BigNumber } from "ethers";
 
 // import ConnectWallet from "../Common/ConnetWallet";
 import { dsUtilNumberWithCommas } from "../utilities";
 import {VestingContractAddress, vestingTokenSymbol } from "../config";
+import useCasperWeb3Provider from "../web3";
+
 
 const PrettoSlider = styled(Slider)({
     height: 8,
@@ -39,10 +42,6 @@ const PrettoSlider = styled(Slider)({
 
 const Vesting = () => {
 
-	const account = useSelector(state => state.auth.currentWallet);
-	const chainId = useSelector(state => state.auth.currentChainId);
-	const globalWeb3 = useSelector(state => state.auth.globalWeb3);
-
     const isMobile = useMediaQuery({ query: '(max-width: 1224px)' });
 
     const [switchPanal, setSwitchPanal] = useState(true);
@@ -53,6 +52,10 @@ const Vesting = () => {
     const [VestingDuration, setVestingDuration] = useState(1);
     const [hourlyVesting, sethourlyVesting] = useState(0);
     const [claimableAmount, setPendingRewards] = useState(0);
+
+    const getTotalVoumnOfVesting = async () => {
+        
+    }
 
     const onClickMax = async () => {        
 
@@ -166,7 +169,7 @@ const Vesting = () => {
                                                 </Grid>
                                                 <Grid item sm={6} md={6} lg={6} xl={6} px={2} py={1}>
                                                     <Grid container alignItems='center' justifyContent='right'>
-                                                        <Typography color='#055ef0'>Hour</Typography>                                                     
+                                                        <Typography color='#fff'>Hour</Typography>                                                     
                                                     </Grid>
                                                 </Grid>
                                             </Grid>
