@@ -116,6 +116,7 @@ const Vesting = () => {
             {
                 let currentAllowance =  await allowanceOf(vestingTokenAddress, vestingContractAddress, activeAddress);
                 currentAllowance =  BigNumber(Math.floor(Number(currentAllowance)));
+                console.log("currentAllowance = ", currentAllowance);
                 var decimals =  BigNumber("10").power(6);
                 var max_allowance =  BigNumber("9999999999999").multiply(decimals);
                 if(currentAllowance - BigNumber(VestingAmount) < 0)

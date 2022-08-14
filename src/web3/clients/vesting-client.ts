@@ -93,7 +93,7 @@ export class VestingClient extends ContractClient {
     }
 
     async vest(
-        publicKey: RecipientType,
+        publicKey: CLPublicKey,
         cliff_amount: BigNumberish,
         cliff_durtime: BigNumberish,
         acc_recip: string,
