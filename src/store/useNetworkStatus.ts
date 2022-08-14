@@ -16,7 +16,6 @@ const useNetworkStatus = create<NetworkStatus>(
     set(() => {
       const activeAddress = address ? address : "";
       const isConnected = activeAddress === "" ? false : true;
-      console.log("activeAddress =  ", activeAddress);
       
       return {
         activeAddress,

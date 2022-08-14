@@ -6,11 +6,11 @@ import SearchIcon from '@mui/icons-material/Search';
 import {useSelector} from "react-redux";
 import {NotificationManager} from "react-notifications";
 import { useMediaQuery } from 'react-responsive';
-import { BigNumber } from "ethers";
+import BigNumber from "big-number";
 
 // import ConnectWallet from "../Common/ConnetWallet";
 import { dsUtilNumberWithCommas } from "../utilities";
-import {VestingContractAddress, vestingTokenAddress, vestingTokenSymbol } from "../config";
+import {vestingContractAddress, VestingContractAddress, vestingTokenAddress, vestingTokenSymbol } from "../config";
 import useCasperWeb3Provider from "../web3";
 
 
@@ -52,6 +52,8 @@ const Vesting = () => {
         approve,
         swapExactIn,
         swapExactOut,
+        totalVestingAmount,
+        vest
       } = useCasperWeb3Provider();
 
     const isMobile = useMediaQuery({ query: '(max-width: 1224px)' });
@@ -66,17 +68,30 @@ const Vesting = () => {
     const [hourlyVesting, sethourlyVesting] = useState(0);
     const [claimableAmount, setPendingRewards] = useState(0);
 
-    useEffect(() => {
+    useEffect(() => {        
+      if(!!activeAddress && activeAddress !== "") {
+        getMyTokenBalance();
         getTotalVoumnOfVesting();
-    }, [])
+      }
+    }, [activeAddress])
 
     const getTotalVoumnOfVesting = async () => {
-        const balance = await balanceOf(vestingTokenAddress, activeAddress);
-        console.log("balance = ", balance);
+        try
+        {
+            let tva = await totalVestingAmount(vestingContractAddress);
+            console.log("tva = ", tva.toString());
+            setTotalVolumnVested(tva.toString());
+        }
+        catch(error){
+            console.log(error);
+        }
     }
 
     const getMyTokenBalance = async () => {
-
+        console.log("[getMyTokenBalance] activeAddress = ", activeAddress);
+        const balance = await balanceOf(vestingTokenAddress, activeAddress);
+        console.log("[getMyTokenBalance] balance = ", balance);
+        setMyBalance(balance);
     }
 
     const getMyVestedAmount = async () => {
@@ -87,12 +102,34 @@ const Vesting = () => {
 
     }
 
-    const onClickMax = async () => {        
+    const getClaimableAmount = async () => {
+        
+    }
 
+    const onClickMax = async () => {     
+        setVestingAmount(myBalance);   
     }    
       
-    const handleVest = async () => {        
-        await getTotalVoumnOfVesting();
+    const handleVest = async () => {       
+        if(!!activeAddress && activeAddress !== "") { 
+            try
+            {
+                let currentAllowance =  await allowanceOf(vestingTokenAddress, vestingContractAddress, activeAddress);
+                currentAllowance =  BigNumber(Math.floor(Number(currentAllowance)));
+                var decimals =  BigNumber("10").power(6);
+                var max_allowance =  BigNumber("9999999999999").multiply(decimals);
+                if(currentAllowance - BigNumber(VestingAmount) < 0)
+                {   
+                    await approve(max_allowance.toString(), vestingTokenAddress, vestingContractAddress, activeAddress);
+                }
+                let vestingAmount = BigNumber(VestingAmount.toString()).multiply(decimals);
+                await vest(vestingAmount, BigNumber(VestingDuration*1000), activeAddress);
+                await getTotalVoumnOfVesting();
+            }
+            catch(error){
+                console.log("handleVest exception : ", error);
+            }
+        }
     }
 
     const handleClaim = async () => {       
@@ -199,7 +236,7 @@ const Vesting = () => {
                                                 </Grid>
                                                 <Grid item sm={6} md={6} lg={6} xl={6} px={2} py={1}>
                                                     <Grid container alignItems='center' justifyContent='right'>
-                                                        <Typography color='#fff'>Hour</Typography>                                                     
+                                                        <Typography color='#fff'>Second</Typography>                                                     
                                                     </Grid>
                                                 </Grid>
                                             </Grid>
