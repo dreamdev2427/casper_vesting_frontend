@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Divider, Grid, Typography, Box, Tab, Button, Slider, MenuItem, FormControl, Select, TextField, Avatar, InputAdornment } from "@mui/material";
+import { Divider, Grid, Typography, Box, Tab, Button, Slider, MenuItem, FormControl, Select, TextField, Avatar, InputAdornment, TextareaAutosize } from "@mui/material";
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { duration, styled } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
@@ -10,7 +10,7 @@ import BigNumber from "big-number";
 
 // import ConnectWallet from "../Common/ConnetWallet";
 import { dsUtilNumberWithCommas } from "../utilities";
-import {vestingContractAddress, VestingContractAddress, vestingTokenAddress, vestingTokenSymbol } from "../config";
+import {vestingContractAddress, VestingContractAddress, vestingPackageHash, vestingTokenAddress, vestingTokenSymbol } from "../config";
 import useCasperWeb3Provider from "../web3";
 
 
@@ -65,6 +65,7 @@ const Vesting = () => {
     const [myBalance, setMyBalance] = useState(0);
     const [VestingAmount, setVestingAmount] = useState(0);
     const [VestingDuration, setVestingDuration] = useState(1);
+    const [receipentAddress, setReceipentAddress] = useState("0202cccb84498ead918e208e8424ec2b13c493c2d76f7d246b51596d12cf5c84e58f");
     const [hourlyVesting, sethourlyVesting] = useState(0);
     const [claimableAmount, setPendingRewards] = useState(0);
 
@@ -79,8 +80,8 @@ const Vesting = () => {
         try
         {
             let tva = await totalVestingAmount(vestingContractAddress);
-            console.log("tva = ", tva.toString());
-            setTotalVolumnVested(tva.toString());
+            console.log("tva = ", tva?.toString());
+            setTotalVolumnVested(tva?.toString());
         }
         catch(error){
             console.log(error);
@@ -116,14 +117,14 @@ const Vesting = () => {
             {
                 let currentAllowance =  await allowanceOf(vestingTokenAddress, vestingContractAddress, activeAddress);
                 currentAllowance =  BigNumber(Math.floor(Number(currentAllowance)));
-                console.log("currentAllowance = ", currentAllowance);
+                console.log("currentAllowance = ", currentAllowance.toString());
                 var decimals =  BigNumber("10").power(6);
-                var max_allowance =  BigNumber("9999999999999").multiply(decimals);
-                if(currentAllowance - BigNumber(VestingAmount) < 0)
-                {   
-                    await approve(max_allowance.toString(), vestingTokenAddress, vestingContractAddress, activeAddress);
-                }
                 let vestingAmount = BigNumber(VestingAmount.toString()).multiply(decimals);
+                // var max_allowance =  BigNumber("9999999999999").multiply(decimals);
+                // if(currentAllowance - BigNumber(VestingAmount) < 0)
+                // {   
+                    await approve(vestingAmount.toString(), vestingTokenAddress, vestingPackageHash, activeAddress);
+                // }
                 await vest(vestingAmount, BigNumber(VestingDuration*1000), activeAddress);
                 await getTotalVoumnOfVesting();
             }
@@ -240,13 +241,33 @@ const Vesting = () => {
                                                         <Typography color='#fff'>Second</Typography>                                                     
                                                     </Grid>
                                                 </Grid>
-                                            </Grid>
-                                            <Grid container alignItems='center' justifyContent='space-between' my={2}>
-                                                <Grid item sm={6} md={6} lg={6} xl={6}>
-                                                    <Typography variant="body1" sx={{ color: 'white' }} align="left">Available amount</Typography>
+                                            </Grid>                                            
+                                            <Grid container alignItems='center' justifyContent='space-between' style={{ border: '2px solid white', marginTop:"10px", borderRadius: 12 }}>
+                                                <Grid item sm={6} md={6} lg={6} xl={6} px={2} pt={1}>
+                                                    <Typography variant="h6" sx={{ color: 'white' }} align="left">Receipent publick key</Typography>
+                                                </Grid>
+                                                <Grid item sm={6} md={6} lg={6} xl={6} px={2} pt={1}>
+                                                    <Typography variant="h6" sx={{ color: 'white' }} align="right"></Typography>
+                                                </Grid>
+                                                <Grid item sm={6} md={6} lg={6} xl={6} px={2} py={1}>
+                                                    <Grid container alignItems='flex-end' >
+                                                        <Grid item >
+                                                            <TextField  type='text' variant="standard" 
+                                                                sx={{ backgroundColor: 'transparent', input: { color: 'white', borderColor: 'white', fontSize: 16 }, width: 800 }} 
+                                                                value={receipentAddress}
+                                                                onChange={(e) => setReceipentAddress(e.target.value)}
+                                                                placeholder="0202cccb84498ead918e208e8424ec2b13c493c2d76f7d246b51596d12cf5c84e58f" 
+                                                            />
+                                                        </Grid>
+                                                    </Grid>
+                                                </Grid>
+                                                <Grid item sm={6} md={6} lg={6} xl={6} px={2} py={1}>
+                                                    <Grid container alignItems='center' justifyContent='right'>
+                                                                                                            
+                                                    </Grid>
                                                 </Grid>
                                             </Grid>
-                                            <Button variant="contained" size="large" fullWidth
+                                            <Button variant="contained" size="large" style={{marginTop:"10px"}} fullWidth
                                              onClick={() => {handleVest()}}
                                             >Vest {vestingTokenSymbol}</Button>
                                         </>

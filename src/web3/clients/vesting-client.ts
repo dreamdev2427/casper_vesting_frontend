@@ -100,14 +100,10 @@ export class VestingClient extends ContractClient {
         paymentAmount: BigNumberish,
         ttl = DEFAULT_TTL
     ) {
-        console.log(cliff_amount.toString());
-        console.log(cliff_durtime.toString());
-        console.log(acc_recip);
-
         const runtimeArgs = RuntimeArgs.fromMap({
             cliff_durtime: new CLU64(cliff_durtime),
             cliff_amount: new CLU256(cliff_amount),
-            acc_recip: new CLString('account-hash-'+acc_recip.toString())
+            acc_recip: new CLString(acc_recip.toString())
         });
 
         return await this.contractCallWithSigner({
