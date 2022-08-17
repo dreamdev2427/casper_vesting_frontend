@@ -16,9 +16,10 @@ const Vesting = () => {
         totalVestingAmount,
         vest,
         claim,
-        getLockAmount,
+        getClaimableAmount,
         getVestedAmount,
-        getHourlyVesting
+        getHourlyVesting,
+        calc_claimable_amount
       } = useCasperWeb3Provider();
 
     const activeAddress = useSelector(state => state.auth.currentWallet);
@@ -39,12 +40,26 @@ const Vesting = () => {
       }
     }, [activeAddress])
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if(!!activeAddress && activeAddress !== "") {
+                calcAndReadClaimiInfor();
+            }
+        }, 6000000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const calcAndReadClaimiInfor = async () => {         
+        await calc_claimable_amount(activeAddress);
+        await fetchClaimableAmount();
+    }
+
     const initializeInformation = async () => {        
         await getTotalVoumnOfVesting();
-        await getMyTokenBalance();
-        await getClaimableAmount();
+        await getMyTokenBalance();        
         await getMyVestedAmount();
         await getMyHourlyVesting();
+        await calcAndReadClaimiInfor();
     }
 
     const getTotalVoumnOfVesting = async () => {
@@ -85,8 +100,8 @@ const Vesting = () => {
         }
     }
 
-    const getClaimableAmount = async () => {
-        const lockamount = await getLockAmount(activeAddress);
+    const fetchClaimableAmount = async () => {
+        const lockamount = await getClaimableAmount(activeAddress);
         if(lockamount) 
         {
             let aa = Number(lockamount._hex)/1000000;

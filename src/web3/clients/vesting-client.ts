@@ -68,19 +68,19 @@ export class VestingClient extends ContractClient {
         );
     }
     
-    async lockAmount(activeAccountHash: string) {
+    async claimableAmount(activeAccountHash: string) {
         const userHash30 = activeAccountHash.substring(13, 43);
         try {
             const result = await utils.contractDictionaryGetter(
                 this.nodeAddress,
-                userHash30+"2",
+                userHash30+"5",
                 urfOfUserInfo
             );
             let userInfo: any = result;
             return userInfo;
         }
         catch (error: any) {
-            console.log("lockAmount exception : ", error);
+            console.log("claimableAmount exception : ", error);
             return undefined;
         }
     }
@@ -157,6 +157,28 @@ export class VestingClient extends ContractClient {
         return await this.contractCallWithSigner({
             publicKey,
             entryPoint: "claim",
+            paymentAmount,
+            runtimeArgs,
+            cb: (deployHash: string) =>
+                {},
+            ttl,
+        } as VestingClient.ContractCallWithSignerPayload);
+    }
+
+    
+    async claimable_amount(
+        publicKey: CLPublicKey,
+        recipient: string,
+        paymentAmount: BigNumberish,
+        ttl = DEFAULT_TTL
+    ) {
+        const runtimeArgs = RuntimeArgs.fromMap({
+            recipient: new CLString(recipient.toString())
+        });
+
+        return await this.contractCallWithSigner({
+            publicKey,
+            entryPoint: "claimable_amount",
             paymentAmount,
             runtimeArgs,
             cb: (deployHash: string) =>

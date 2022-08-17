@@ -183,7 +183,29 @@ import {
       }
     }
        
-    async function getLockAmount(activeAddress:string) {
+    async function calc_claimable_amount() {      
+      let txHash;
+      let vestingManager = new VestingClient(
+          NODE_ADDRESS,
+          CHAIN_NAME,
+          undefined
+        );
+      await vestingManager.setContractHash(vestingContractAddress);
+      try {
+        txHash = await vestingManager.claimable_amount(CLPublicKey.fromHex(activeAddress), CLPublicKey.fromHex(activeAddress).toAccountHashStr(), TRANSFER_FEE);
+      } catch (err) {
+        return;
+      }
+      try {
+        await getDeploy(NODE_ADDRESS, txHash!);
+        // toast.success("Withdraw");
+        return txHash;
+      } catch (error) {
+        return txHash;
+      }
+    }
+
+    async function getClaimableAmount(activeAddress:string) {
       let lockamount;
       let vestingManager = new VestingClient(
           NODE_ADDRESS,
@@ -192,7 +214,7 @@ import {
         );
       await vestingManager.setContractHash(vestingContractAddress);
       try {
-        lockamount = await vestingManager.lockAmount(CLPublicKey.fromHex(activeAddress).toAccountHashStr());
+        lockamount = await vestingManager.claimableAmount(CLPublicKey.fromHex(activeAddress).toAccountHashStr());
         return lockamount;
       } catch (err) {
         return undefined;
@@ -242,9 +264,10 @@ import {
       vest,
       claim,
       totalVestingAmount,
-      getLockAmount,
+      getClaimableAmount,
       getVestedAmount,
-      getHourlyVesting
+      getHourlyVesting,
+      calc_claimable_amount
     };
   }
   
