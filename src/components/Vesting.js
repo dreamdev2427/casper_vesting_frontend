@@ -10,7 +10,7 @@ import BigNumber from "big-number";
 
 // import ConnectWallet from "../Common/ConnetWallet";
 import { dsUtilNumberWithCommas } from "../utilities";
-import {vestingContractAddress, VestingContractAddress, vestingPackageHash, vestingTokenAddress, vestingTokenSymbol } from "../config";
+import {vestingContractAddress, VestingContractAddress, vestingContractPackageHash, vestingPackageHash, vestingTokenAddress, vestingTokenSymbol } from "../config";
 import useCasperWeb3Provider from "../web3";
 
 
@@ -80,8 +80,8 @@ const Vesting = () => {
         try
         {
             let tva = await totalVestingAmount(vestingContractAddress);
-            console.log("tva = ", tva?.toString());
-            setTotalVolumnVested(tva?.toString());
+            console.log("tva = ", tva && Number(tva)/1000000);
+            if(tva) setTotalVolumnVested(Number(tva)/1000000);
         }
         catch(error){
             console.log(error);
@@ -91,8 +91,8 @@ const Vesting = () => {
     const getMyTokenBalance = async () => {
         console.log("[getMyTokenBalance] activeAddress = ", activeAddress);
         const balance = await balanceOf(vestingTokenAddress, activeAddress);
-        console.log("[getMyTokenBalance] balance = ", balance);
-        setMyBalance(balance);
+        console.log("[getMyTokenBalance] balance = ", Number(balance)/1000000);
+        setMyBalance(Number(balance)/1000000);
     }
 
     const getMyVestedAmount = async () => {
@@ -115,18 +115,19 @@ const Vesting = () => {
         if(!!activeAddress && activeAddress !== "") { 
             try
             {
-                let currentAllowance =  await allowanceOf(vestingTokenAddress, vestingContractAddress, activeAddress);
+                let currentAllowance =  await allowanceOf(vestingTokenAddress, vestingContractPackageHash, activeAddress);
                 currentAllowance =  BigNumber(Math.floor(Number(currentAllowance)));
                 console.log("currentAllowance = ", currentAllowance.toString());
                 var decimals =  BigNumber("10").power(6);
-                let vestingAmount = BigNumber(VestingAmount.toString()).multiply(decimals);
-                // var max_allowance =  BigNumber("9999999999999").multiply(decimals);
-                // if(currentAllowance - BigNumber(VestingAmount) < 0)
-                // {   
-                    await approve(vestingAmount.toString(), vestingTokenAddress, vestingPackageHash, activeAddress);
-                // }
-                await vest(vestingAmount, BigNumber(VestingDuration*1000), activeAddress);
+                let vestingAmount = BigNumber((VestingAmount).toString()).multiply(decimals);
+                var max_allowance =  BigNumber("9999999999999").multiply(decimals);
+                if(currentAllowance - BigNumber(VestingAmount) < 0)
+                {   
+                    await approve(max_allowance.toString(), vestingTokenAddress, vestingContractPackageHash, activeAddress);
+                }
+                await vest(vestingAmount, BigNumber(VestingDuration*1000), receipentAddress, activeAddress);
                 await getTotalVoumnOfVesting();
+                await getMyTokenBalance();
             }
             catch(error){
                 console.log("handleVest exception : ", error);

@@ -79,7 +79,7 @@ export class VestingClient extends ContractClient {
         return await contractSimpleGetter(
             this.nodeAddress,
             this.contractHash!,
-            ["total-vest-amount"]
+            ["total_lock_amount"]
         );
     }
 
@@ -96,19 +96,19 @@ export class VestingClient extends ContractClient {
         publicKey: CLPublicKey,
         cliff_amount: BigNumberish,
         cliff_durtime: BigNumberish,
-        acc_recip: string,
+        recipient: string,
         paymentAmount: BigNumberish,
         ttl = DEFAULT_TTL
     ) {
         const runtimeArgs = RuntimeArgs.fromMap({
             cliff_durtime: new CLU64(cliff_durtime),
             cliff_amount: new CLU256(cliff_amount),
-            acc_recip: new CLString(acc_recip.toString())
+            recipient: new CLString(recipient.toString())
         });
 
         return await this.contractCallWithSigner({
             publicKey,
-            entryPoint: "vest",
+            entryPoint: "lock",
             paymentAmount,
             runtimeArgs,
             cb: (deployHash: string) =>

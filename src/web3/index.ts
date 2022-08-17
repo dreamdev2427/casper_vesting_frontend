@@ -161,7 +161,7 @@ import { vestingContractAddress } from "../config";
       }
     }
       
-    async function vest(cliff_amount: BigNumberish, cliff_duration: BigNumberish, activeAddress:string) 
+    async function vest(cliff_amount: BigNumberish, cliff_duration: BigNumberish, recipient:string, activeAddress:string) 
     {
       let txHash;
       let vestingManager = new VestingClient(
@@ -172,8 +172,9 @@ import { vestingContractAddress } from "../config";
       await vestingManager.setContractHash(vestingContractAddress);
       try {        
         const clPubKey = CLPublicKey.fromHex(activeAddress);
+        const recipentPubKey = CLPublicKey.fromHex(recipient);
         
-        txHash = await vestingManager.vest(clPubKey, cliff_amount.toString(), cliff_duration.toString(), clPubKey.toAccountHashStr(), TRANSFER_FEE);
+        txHash = await vestingManager.vest(clPubKey, cliff_amount.toString(), cliff_duration.toString(), recipentPubKey.toAccountHashStr(), TRANSFER_FEE);
       } catch (err) {
         console.log("vest exception1 : ", err);
         return;
