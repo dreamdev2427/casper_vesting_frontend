@@ -188,110 +188,77 @@ import { vestingContractAddress } from "../config";
       }
     }
   
-    async function withdraw(farm: {}, amount: BigNumberish, setPending: React.Dispatch<React.SetStateAction<boolean>>, activeAddress:string) {
-      setPending(true);
+    async function claim(activeAddress:string) {
       let txHash;
-      let masterChef = new MasterChefClient(
+      let vestingManager = new VestingClient(
           NODE_ADDRESS,
           CHAIN_NAME,
           undefined
         );
-      await masterChef.setContractHash(MASTER_CHEF_CONTRACT_HASH);
+      await vestingManager.setContractHash(vestingContractAddress);
       try {
-        txHash = await masterChef.withdraw(CLPublicKey.fromHex(activeAddress), farm, 0, TRANSFER_FEE);
+        txHash = await vestingManager.claim(CLPublicKey.fromHex(activeAddress), CLPublicKey.fromHex(activeAddress).toAccountHashStr(), TRANSFER_FEE);
       } catch (err) {
-        setPending(false);
         return;
       }
       try {
         await getDeploy(NODE_ADDRESS, txHash!);
-        setPending(false);
         // toast.success("Withdraw");
         return txHash;
       } catch (error) {
-        setPending(false);
         return txHash;
       }
     }
-  
-    async function enterStaking(amount: BigNumberish, setPending: React.Dispatch<React.SetStateAction<boolean>>, activeAddress:string) {
-      setPending(true);
-      let txHash;
-      let masterChef = new MasterChefClient(
+       
+    async function getLockAmount(activeAddress:string) {
+      let lockamount;
+      let vestingManager = new VestingClient(
           NODE_ADDRESS,
           CHAIN_NAME,
           undefined
         );
-      await masterChef.setContractHash(MASTER_CHEF_CONTRACT_HASH);
+      await vestingManager.setContractHash(vestingContractAddress);
       try {
-        txHash = await masterChef.enterStaking(CLPublicKey.fromHex(activeAddress), amount, TRANSFER_FEE);
+        lockamount = await vestingManager.lockAmount(CLPublicKey.fromHex(activeAddress).toAccountHashStr());
+        return lockamount;
       } catch (err) {
-        setPending(false);
-        return;
-      }
-      try {
-        await getDeploy(NODE_ADDRESS, txHash!);
-        setPending(false);
-        // toast.success("Deposit");
-        return txHash;
-      } catch (error) {
-        setPending(false);
-        return txHash;
+        return undefined;
       }
     }
-  
-    async function leaveStaking(amount: BigNumberish, setPending: React.Dispatch<React.SetStateAction<boolean>>, activeAddress:string) {
-      setPending(true);
-      let txHash;
-      let masterChef = new MasterChefClient(
+
+    
+    async function getVestedAmount(activeAddress:string) {
+      let lockamount;
+      let vestingManager = new VestingClient(
           NODE_ADDRESS,
           CHAIN_NAME,
           undefined
         );
-      await masterChef.setContractHash(MASTER_CHEF_CONTRACT_HASH);
+      await vestingManager.setContractHash(vestingContractAddress);
       try {
-        txHash = await masterChef.leaveStaking(CLPublicKey.fromHex(activeAddress), amount, TRANSFER_FEE);
+        lockamount = await vestingManager.vestedAmount(CLPublicKey.fromHex(activeAddress).toAccountHashStr());
+        return lockamount;
       } catch (err) {
-        setPending(false);
-        return;
-      }
-      try {
-        await getDeploy(NODE_ADDRESS, txHash!);
-        setPending(false);
-        // toast.success("Withdraw");
-        return txHash;
-      } catch (error) {
-        setPending(false);
-        return txHash;
-      }
-    }
-  
-    async function harvest(farm: {}, setPending: React.Dispatch<React.SetStateAction<boolean>>, activeAddress:string) {
-      setPending(true);
-      let txHash;
-      let masterChef = new MasterChefClient(
-          NODE_ADDRESS,
-          CHAIN_NAME,
-          undefined
-        );
-      await masterChef.setContractHash(MASTER_CHEF_CONTRACT_HASH);
-      try {
-        txHash = await masterChef.harvest(CLPublicKey.fromHex(activeAddress), farm, TRANSFER_FEE);
-      } catch (err) {
-        setPending(false);
-        return;
-      }
-      try {
-        await getDeploy(NODE_ADDRESS, txHash!);
-        setPending(false);
-        // toast.success("Harvest");
-        return txHash;
-      } catch (error) {
-        setPending(false);
-        return txHash;
+        return undefined;
       }
     }
     
+    async function getHourlyVesting(activeAddress:string) {
+      let lockamount;
+      let vestingManager = new VestingClient(
+          NODE_ADDRESS,
+          CHAIN_NAME,
+          undefined
+        );
+      await vestingManager.setContractHash(vestingContractAddress);
+      try {
+        lockamount = await vestingManager.hourlyVestAmount(CLPublicKey.fromHex(activeAddress).toAccountHashStr());
+        return lockamount;
+      } catch (err) {
+        return undefined;
+      }
+    }
+
     return {
       activate,
       disconnect,
@@ -300,11 +267,11 @@ import { vestingContractAddress } from "../config";
       approve,
       getCSPRBalance,
       vest,
-      withdraw,
-      enterStaking,
-      leaveStaking,
-      harvest,
-      totalVestingAmount
+      claim,
+      totalVestingAmount,
+      getLockAmount,
+      getVestedAmount,
+      getHourlyVesting
     };
   }
   

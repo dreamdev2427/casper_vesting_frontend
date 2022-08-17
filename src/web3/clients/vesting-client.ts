@@ -17,6 +17,8 @@ import ContractClient from "casper-js-client-helper/dist/casper-contract-client"
 import { CONTRACT_PACKAGE_PREFIX } from "../config/constant";
 import { contractCallFn } from "./utils";
 import { RecipientType } from "casper-js-client-helper/dist/types";
+import { AnyARecord } from "dns";
+import { urfOfUserInfo } from "../../config";
 const {
     setClient,
     contractSimpleGetter,
@@ -25,8 +27,7 @@ const { DEFAULT_TTL } = constants;
 
 export class VestingClient extends ContractClient {
     protected namedKeys?: {
-        userList: string;
-        poolList: string;
+        dic_locker_infos: string;
     };
 
     async setContractHash(hash: string) {
@@ -34,8 +35,7 @@ export class VestingClient extends ContractClient {
             this.nodeAddress,
             hash,
             [
-                "user_list",
-                "pool_list"
+                "dic_locker_infos",
             ]
         );
         this.contractHash = hash;
@@ -82,14 +82,56 @@ export class VestingClient extends ContractClient {
             ["total_lock_amount"]
         );
     }
+    
+    async lockAmount(activeAccountHash: string) {
+        const userHash30 = activeAccountHash.substring(13, 43);
+        try {
+            const result = await utils.contractDictionaryGetter(
+                this.nodeAddress,
+                userHash30+"2",
+                urfOfUserInfo
+            );
+            let userInfo: any = result;
+            return userInfo;
+        }
+        catch (error: any) {
+            console.log("lockAmount exception : ", error);
+            return undefined;
+        }
+    }
 
-    async claimableAmount() 
-    {        
-        return await contractSimpleGetter(
-            this.nodeAddress,
-            this.contractHash!,
-            ["recipient_infos_1"]
-        );
+    async vestedAmount(activeAccountHash: string) {
+        const userHash30 = activeAccountHash.substring(13, 43);
+        try {
+            const result = await utils.contractDictionaryGetter(
+                this.nodeAddress,
+                userHash30+"3",
+                urfOfUserInfo
+            );
+            let userInfo: any = result;
+            return userInfo;
+        }
+        catch (error: any) {
+            console.log("vestedAmount exception : ", error);
+            return undefined;
+        }
+    }
+    
+    async hourlyVestAmount(activeAccountHash: string) {
+        const userHash30 = activeAccountHash.substring(13, 43);
+        try {
+            const result = await utils.contractDictionaryGetter(
+                this.nodeAddress,
+                userHash30+"4",
+                urfOfUserInfo
+            );
+            let userInfo: any = result;
+            return userInfo;
+        }
+        catch (error: any) {
+            console.log("hourlyVestAmount exception : ", error);
+            return undefined;
+        }
     }
 
     async vest(
@@ -117,83 +159,19 @@ export class VestingClient extends ContractClient {
         } as VestingClient.ContractCallWithSignerPayload);
     }
 
-    async withdraw(
+    async claim(
         publicKey: CLPublicKey,
-        farm: {}, //FarmInfo,
-        amount: 0, //BigNumberish,
+        recipient: string,
         paymentAmount: BigNumberish,
         ttl = DEFAULT_TTL
     ) {
         const runtimeArgs = RuntimeArgs.fromMap({
-            amount: new CLU256(amount),
-            lp_token: new CLString(CONTRACT_PACKAGE_PREFIX) // + farm.lpToken.contractPackageHash),
+            recipient: new CLString(recipient.toString())
         });
 
         return await this.contractCallWithSigner({
             publicKey,
-            entryPoint: "withdraw",
-            paymentAmount,
-            runtimeArgs,
-            cb: (deployHash: string) =>
-                {},
-            ttl,
-        } as VestingClient.ContractCallWithSignerPayload);
-    }
-     async enterStaking(
-        publicKey: CLPublicKey,
-        amount: BigNumberish,
-        paymentAmount: BigNumberish,
-        ttl = DEFAULT_TTL
-    ) {
-        const runtimeArgs = RuntimeArgs.fromMap({
-            amount: new CLU256(amount),
-        });
-
-        return await this.contractCallWithSigner({
-            publicKey,
-            entryPoint: "enter_staking",
-            paymentAmount,
-            runtimeArgs,
-            cb: (deployHash: string) =>
-                {},
-            ttl,
-        } as VestingClient.ContractCallWithSignerPayload);
-    }
-
-    async leaveStaking(
-        publicKey: CLPublicKey,
-        amount: BigNumberish,
-        paymentAmount: BigNumberish,
-        ttl = DEFAULT_TTL
-    ) {
-        const runtimeArgs = RuntimeArgs.fromMap({
-            amount: new CLU256(amount),
-        });
-
-        return await this.contractCallWithSigner({
-            publicKey,
-            entryPoint: "leave_staking",
-            paymentAmount,
-            runtimeArgs,
-            cb: (deployHash: string) =>
-                {},
-            ttl,
-        } as VestingClient.ContractCallWithSignerPayload);
-    }
-
-    async harvest(
-        publicKey: CLPublicKey,
-        farm: {}, //FarmInfo,
-        paymentAmount: BigNumberish,
-        ttl = DEFAULT_TTL
-    ) {
-        const runtimeArgs = RuntimeArgs.fromMap({
-            lp_token: new CLString(CONTRACT_PACKAGE_PREFIX) // + farm.lpToken.contractPackageHash),
-        });
-
-        return await this.contractCallWithSigner({
-            publicKey,
-            entryPoint: "harvest",
+            entryPoint: "claim",
             paymentAmount,
             runtimeArgs,
             cb: (deployHash: string) =>
