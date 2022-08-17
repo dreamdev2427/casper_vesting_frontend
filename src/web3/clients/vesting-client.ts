@@ -1,23 +1,14 @@
 import {
-    CLValueParsers,
     RuntimeArgs,
     CLPublicKey,
     CLU256,
     CLString,
-    CLKey,
-    CLAccountHash,
-    CLValueBuilder,
     CLU64,
 } from "casper-js-sdk";
-import blake from "blakejs";
-import { concat } from "@ethersproject/bytes";
 import { BigNumberish } from "@ethersproject/bignumber";
 import { helpers, constants, utils } from "casper-js-client-helper";
 import ContractClient from "casper-js-client-helper/dist/casper-contract-client";
-import { CONTRACT_PACKAGE_PREFIX } from "../config/constant";
 import { contractCallFn } from "./utils";
-import { RecipientType } from "casper-js-client-helper/dist/types";
-import { AnyARecord } from "dns";
 import { urfOfUserInfo } from "../../config";
 const {
     setClient,
@@ -26,22 +17,16 @@ const {
 const { DEFAULT_TTL } = constants;
 
 export class VestingClient extends ContractClient {
-    protected namedKeys?: {
-        dic_locker_infos: string;
-    };
 
     async setContractHash(hash: string) {
-        const { contractPackageHash, namedKeys } = await setClient(
+        const { contractPackageHash } = await setClient(
             this.nodeAddress,
             hash,
             [
-                "dic_locker_infos",
             ]
         );
         this.contractHash = hash;
         this.contractPackageHash = contractPackageHash;
-        /* @ts-ignore */
-        this.namedKeys = namedKeys;
     }
 
     async contractCallWithSigner({

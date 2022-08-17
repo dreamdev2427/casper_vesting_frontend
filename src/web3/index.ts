@@ -5,8 +5,6 @@ import {
     CLValueBuilder,
     decodeBase16,
     CasperServiceByJsonRPC,
-    CLValueParsers,
-    CLMap,
     CLAccountHash,
   } from "casper-js-sdk";
   import { ERC20SignerClient } from "./clients/erc20signer-client";
@@ -14,24 +12,18 @@ import {
   import { BigNumber, BigNumberish } from "ethers";
   import {
     CHAIN_NAME,
-    MASTER_CHEF_CONTRACT_HASH,
     NODE_ADDRESS,
     TRANSFER_FEE,
   } from "./config/constant";
-  import { useEffect } from "react";
   
   // import useWalletStatus from "../store/useWalletStatus";
   import { amountWithoutDecimals, getDeploy } from "../utils/utils";
-  import { Token } from "../config/interface/token";
-  import { MasterChefClient } from "./clients/master-chef-client";
   import { VestingClient } from "./clients/vesting-client";
-import { vestingContractAddress } from "../config";
+  import { vestingContractAddress } from "../config";
 
   export default function useCasperWeb3Provider() {
-    const { setActiveAddress, activeAddress, isConnected } = useNetworkStatus();
-  
-    // const { addAccount } = useWalletStatus();
-  
+    const { setActiveAddress, activeAddress } = useNetworkStatus();
+    
     async function activate(requireConnection = true): Promise<void> {
       try {
         if (!!activeAddress && activeAddress !== "") return;
@@ -141,26 +133,7 @@ import { vestingContractAddress } from "../config";
       }
       return amountWithoutDecimals(BigNumber.from(accountBalance), 9);
     }
-    
-    async function getContractHashFromPackage(packageHash: string, activeAddress:string) {
-      const client = new CasperServiceByJsonRPC(NODE_ADDRESS);
-          const { block } = await client.getLatestBlockInfo();
-  
-      if (block) {
-        const stateRootHash = block.header.state_root_hash;
-        const blockState = await client.getBlockState(
-          stateRootHash,
-          `hash-${packageHash}`,
-          []
-        );
-        let contractHash =
-          blockState.ContractPackage?.versions[
-            blockState.ContractPackage.versions.length - 1
-          ].contractHash.slice(9)!;
-        return contractHash;
-      }
-    }
-      
+          
     async function vest(cliff_amount: BigNumberish, cliff_duration: BigNumberish, recipient:string, activeAddress:string) 
     {
       let txHash;

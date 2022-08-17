@@ -1,44 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { Divider, Grid, Typography, Box, Tab, Button, Slider, MenuItem, FormControl, Select, TextField, Avatar, InputAdornment, TextareaAutosize } from "@mui/material";
-import { TabContext, TabList, TabPanel } from '@mui/lab';
-import { duration, styled } from '@mui/material/styles';
-import SearchIcon from '@mui/icons-material/Search';
+import { useEffect, useState } from "react";
+import { Divider, Grid, Typography, Box, Button,  TextField } from "@mui/material";
+
 import {useSelector} from "react-redux";
-import {NotificationManager} from "react-notifications";
-import { useMediaQuery } from 'react-responsive';
 import BigNumber from "big-number";
 
-// import ConnectWallet from "../Common/ConnetWallet";
-import { dsUtilNumberWithCommas } from "../utilities";
-import {vestingContractAddress, VestingContractAddress, vestingContractPackageHash, vestingPackageHash, vestingTokenAddress, vestingTokenSymbol } from "../config";
+import {vestingContractAddress, vestingContractPackageHash, vestingTokenAddress, vestingTokenSymbol } from "../config";
 import useCasperWeb3Provider from "../web3";
-
-
-const PrettoSlider = styled(Slider)({
-    height: 8,
-    '& .MuiSlider-track': {
-        border: 'none',
-    },
-    '& .MuiSlider-thumb': {
-        height: 24,
-        width: 24,
-        backgroundColor: '#fff',
-        border: '2px solid currentColor',
-        '&:focus, &:hover, &.Mui-active, &.Mui-focusVisible': {
-            boxShadow: 'inherit',
-        },
-        '&:before': {
-            display: 'none',
-        },
-    },
-    '& .MuiSlider-valueLabel': {
-        backgroundColor: '#fff',
-        color: 'black'
-    },
-    '& 	.MuiSlider-markLabel': {
-        color: '#fff',
-    }
-});
 
 const Vesting = () => {
 
@@ -54,7 +21,6 @@ const Vesting = () => {
         getHourlyVesting
       } = useCasperWeb3Provider();
 
-    const isMobile = useMediaQuery({ query: '(max-width: 1224px)' });
     const activeAddress = useSelector(state => state.auth.currentWallet);
 
     const [switchPanal, setSwitchPanal] = useState(true);
