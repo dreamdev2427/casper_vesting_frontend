@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Divider, Grid, Typography, Box, Button,  TextField } from "@mui/material";
+import { Divider, Grid, Typography, Box, Button,  TextField, Backdrop, CircularProgress } from "@mui/material";
 
 import {useSelector} from "react-redux";
 import BigNumber from "big-number";
@@ -24,8 +24,9 @@ const Vesting = () => {
         getDecimal
       } = useCasperWeb3Provider();
 
+    
     const activeAddress = useSelector(state => state.auth.currentWallet);
-
+    const [working, setWorking] = useState(false);
     const [switchPanal, setSwitchPanal] = useState(true);
     const [totalVolumnInVesting, setTotalVolumnVested] = useState(0);
     const [myVested, setMyVested] = useState(0);
@@ -60,10 +61,14 @@ const Vesting = () => {
     }, [activeAddress])
 
     useEffect(() => {
-        if(!!VestingTokenHash && VestingTokenHash !== "" && VestingTokenHash !== prevVestingTokenHash) {
+        if(!!VestingTokenHash && VestingTokenHash !== "" && VestingTokenHash !== prevVestingTokenHash) {      
+            setWorking(true); 
+            try{    
              getTokenSymbol();
              getMyTokenBalance();      
-             getTokenDecimal();  
+             getTokenDecimal();        
+            }catch(e){ setWorking(false); }
+             setWorking(false);     
         }
     }, [VestingTokenHash])
 
@@ -81,7 +86,9 @@ const Vesting = () => {
         await fetchClaimableAmount();
     }
 
-    const initializeInformation = async () => {        
+    const initializeInformation = async () => {           
+        setWorking(true);     
+        try{
         await getTotalVoumnOfVesting();
         await getTokenSymbol();
         await getTokenDecimal();
@@ -89,6 +96,8 @@ const Vesting = () => {
         await getMyVestedAmount();
         await getMyHourlyVesting();
         await calcAndReadClaimiInfor();
+        }catch(e){setWorking(false);}
+        setWorking(false);
     }
 
     const getTotalVoumnOfVesting = async () => {
@@ -178,6 +187,7 @@ const Vesting = () => {
       
     const handleVest = async () => {       
         if(!!activeAddress && activeAddress !== "" && !!VestingTokenHash && VestingTokenHash !== "") { 
+            setWorking(true);
             try
             {
                 let currentAllowance =  await allowanceOf(VestingTokenHash, vestingContractPackageHash, activeAddress);
@@ -194,21 +204,26 @@ const Vesting = () => {
                 await initializeInformation();
             }
             catch(error){
+                setWorking(false);
                 console.log("handleVest exception : ", error);
             }
+            setWorking(false);
         }
     }
 
     const handleClaim = async () => {       
-        if(!!activeAddress && activeAddress !== "") { 
+        if(!!activeAddress && activeAddress !== "") {             
+            setWorking(true);
             try
             {
                 await claim(activeAddress, receipentAddress, VestingTokenHash);
                 await initializeInformation();
             }
             catch(error){
+                setWorking(false);
                 console.log("claim error : ", error);
             }
+            setWorking(false);
         }
     }
 
@@ -425,6 +440,13 @@ const Vesting = () => {
                     </Grid>
                 </Grid>
             </Grid>
+            
+            <Backdrop
+              sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+              open={working}
+            >
+              <CircularProgress color="inherit" />
+            </Backdrop>
         </div >
     )
 };

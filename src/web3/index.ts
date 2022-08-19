@@ -66,8 +66,6 @@ import {
       try {
         const erc20 = new ERC20SignerClient(NODE_ADDRESS, CHAIN_NAME, undefined);
         await erc20.setContractHash(contractHash);      
-        const clPubKey = CLPublicKey.fromHex(activeAddress);
-        const userHash = new CLAccountHash(clPubKey.toAccountHash());
         symbol = await erc20.symbol();
       } catch (error) {
         console.log("allowanceOf exception : ", error);
@@ -81,8 +79,6 @@ import {
       try {
         const erc20 = new ERC20SignerClient(NODE_ADDRESS, CHAIN_NAME, undefined);
         await erc20.setContractHash(contractHash);      
-        const clPubKey = CLPublicKey.fromHex(activeAddress);
-        const userHash = new CLAccountHash(clPubKey.toAccountHash());
         decimal = await erc20.decimals();
       } catch (error) {
         console.log("allowanceOf exception : ", error);
