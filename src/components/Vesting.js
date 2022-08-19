@@ -18,6 +18,7 @@ const Vesting = () => {
         claim,
         getClaimableAmount,
         getVestedAmount,
+        getLockedAmount,
         getHourlyVesting,
         calc_claimable_amount,
         getSymbol,
@@ -29,6 +30,7 @@ const Vesting = () => {
     const [working, setWorking] = useState(false);
     const [switchPanal, setSwitchPanal] = useState(true);
     const [totalVolumnInVesting, setTotalVolumnVested] = useState(0);
+    const [myLocked, setMyLocked] = useState(0);
     const [myVested, setMyVested] = useState(0);
     const [myBalance, setMyBalance] = useState(0);
     const [VestingTokenHash, setVestingTokenHash] = useState(vestingTokenAddress);
@@ -85,6 +87,10 @@ const Vesting = () => {
     const calcAndReadClaimiInfor = async () => {    
         setWorking(true);
         try{     
+        await getMyTokenBalance();        
+        await getMyVestedAmount();
+        await getMyLockedAmount();
+        await getMyHourlyVesting();
         await calc_claimable_amount(activeAddress, VestingTokenHash);
         await fetchClaimableAmount();
         }catch(e){setWorking(false)}
@@ -99,6 +105,7 @@ const Vesting = () => {
         await getTokenDecimal();
         await getMyTokenBalance();        
         await getMyVestedAmount();
+        await getMyLockedAmount();
         await getMyHourlyVesting();
         await calcAndReadClaimiInfor();
         }catch(e){setWorking(false);}
@@ -151,14 +158,28 @@ const Vesting = () => {
         }
     }
 
+    const getMyLockedAmount = async () => {        
+        if(!!activeAddress && activeAddress !== "" && !!VestingTokenHash && VestingTokenHash !== "") {
+            try{
+            const va = await getLockedAmount(activeAddress, VestingTokenHash);
+            if(va) 
+            {
+                console.log("lockedamount = ", temp);
+                let temp = Number(va._hex)/(10**vestingTokenDecimal);
+                setMyLocked(temp);        
+            }
+        }catch(error){}
+        }
+    }
+
     const getMyVestedAmount = async () => {        
         if(!!activeAddress && activeAddress !== "" && !!VestingTokenHash && VestingTokenHash !== "") {
             try{
             const va = await getVestedAmount(activeAddress, VestingTokenHash);
             if(va) 
             {
+                console.log("vestedamount = ", temp);
                 let temp = Number(va._hex)/(10**vestingTokenDecimal);
-                console.log(temp);
                 setMyVested(temp);        
             }
         }catch(error){}
@@ -186,7 +207,6 @@ const Vesting = () => {
             if(lockamount) 
             {
                 let aa = Number(lockamount._hex)/(10**vestingTokenDecimal);
-                console.log("claimable_amount = ", aa);
                 setClaimableAmount(aa);        
             }
         }catch(error){}
@@ -267,13 +287,20 @@ const Vesting = () => {
             <Grid container justifyContent='center' style={{flex:1}} p={4}>
                 <Grid item sm={12} md={10} lg={10} xl={10} style={{ border: '2px solid white',flex:1 }}>
                     <Grid container pt={2} alignItems='center' justifyContent='space-around'>
+                        {
+                            switchPanal && 
                         <Grid item sm={3} md={3} lg={3} xl={3}>
                             <Typography sx={{ color: 'white' }} variant="body1">Total Volume in vesting</Typography>
                             <Typography sx={{ color: 'white' }} variant="h6" fontWeight='bold'>{totalVolumnInVesting} {vestingTokenSymbol}</Typography>
                         </Grid>
+                        }
                         {
                             !switchPanal && 
                             <>
+                            <Grid item sm={3} md={3} lg={3} xl={3}>
+                                <Typography sx={{ color: 'white' }} variant="body1">My Volume in vesting</Typography>
+                                <Typography sx={{ color: 'white' }} variant="h6" fontWeight='bold'>{Number(myLocked)+Number(myVested)} {vestingTokenSymbol}</Typography>
+                            </Grid>
                             <Grid item sm={3} md={3} lg={3} xl={3}>
                                 <Typography sx={{ color: 'white' }} variant="body1">Hourly Rate</Typography>
                                 <Typography sx={{ color: '#fa9422' }} variant="h6" fontWeight='bold'>{hourlyVesting} {vestingTokenSymbol} </Typography>

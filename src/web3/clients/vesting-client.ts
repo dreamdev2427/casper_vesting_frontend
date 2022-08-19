@@ -108,6 +108,26 @@ export class VestingClient extends ContractClient {
         }
     }
         
+    async lockedAmount(activeAddress: string, tokenHash: string) {       
+        const clPubKey = CLPublicKey.fromHex(activeAddress);
+        const prefix = clPubKey.toAccountHashStr().substring(13, 29);
+        const suffix = tokenHash.substring(0,15);
+
+        const itemHash = prefix+suffix;
+        try {
+            const result = await utils.contractDictionaryGetter(
+                this.nodeAddress,
+                itemHash+"2",
+                urfOfUserInfo
+            );
+            let userInfo: any = result;
+            return userInfo;
+        }
+        catch (error: any) {
+            return undefined;
+        }
+    }
+    
     async hourlyVestAmount(activeAddress: string, tokenHash: string) {    
         const clPubKey = CLPublicKey.fromHex(activeAddress);
         const prefix = clPubKey.toAccountHashStr().substring(13, 29);

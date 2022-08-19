@@ -250,6 +250,22 @@ import {
     }
     
     async function getVestedAmount(activeAddress:string, tokenHash: string) {
+      let vestedamount;
+      let vestingManager = new VestingClient(
+          NODE_ADDRESS,
+          CHAIN_NAME,
+          undefined
+        );
+      await vestingManager.setContractHash(vestingContractAddress);
+      try {
+        vestedamount = await vestingManager.vestedAmount(activeAddress, tokenHash);
+        return vestedamount;
+      } catch (err) {
+        return undefined;
+      }
+    }
+    
+    async function getLockedAmount(activeAddress:string, tokenHash: string) {
       let lockamount;
       let vestingManager = new VestingClient(
           NODE_ADDRESS,
@@ -258,13 +274,13 @@ import {
         );
       await vestingManager.setContractHash(vestingContractAddress);
       try {
-        lockamount = await vestingManager.vestedAmount(activeAddress, tokenHash);
+        lockamount = await vestingManager.lockedAmount(activeAddress, tokenHash);
         return lockamount;
       } catch (err) {
         return undefined;
       }
     }
-    
+
     async function getHourlyVesting(activeAddress:string, tokenHash: string) {
       let lockamount;
       let vestingManager = new VestingClient(
@@ -295,6 +311,7 @@ import {
       totalVestingAmount,
       getClaimableAmount,
       getVestedAmount,
+      getLockedAmount,
       getHourlyVesting,
       calc_claimable_amount
     };
