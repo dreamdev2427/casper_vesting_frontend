@@ -61,6 +61,36 @@ import {
       }
     }
 
+    async function getSymbol(contractHash: string, activeAddress:string) {
+      let symbol;
+      try {
+        const erc20 = new ERC20SignerClient(NODE_ADDRESS, CHAIN_NAME, undefined);
+        await erc20.setContractHash(contractHash);      
+        const clPubKey = CLPublicKey.fromHex(activeAddress);
+        const userHash = new CLAccountHash(clPubKey.toAccountHash());
+        symbol = await erc20.symbol();
+      } catch (error) {
+        console.log("allowanceOf exception : ", error);
+        return 0;
+      }
+      return symbol;
+    }
+
+    async function getDecimal(contractHash: string, activeAddress:string) {
+      let decimal;
+      try {
+        const erc20 = new ERC20SignerClient(NODE_ADDRESS, CHAIN_NAME, undefined);
+        await erc20.setContractHash(contractHash);      
+        const clPubKey = CLPublicKey.fromHex(activeAddress);
+        const userHash = new CLAccountHash(clPubKey.toAccountHash());
+        decimal = await erc20.decimals();
+      } catch (error) {
+        console.log("allowanceOf exception : ", error);
+        return 0;
+      }
+      return decimal;
+    }
+
     async function allowanceOf(contractHash: string, spender: string, activeAddress:string) {
       let allowance;
       try {
@@ -134,7 +164,7 @@ import {
       return amountWithoutDecimals(BigNumber.from(accountBalance), 9);
     }
           
-    async function vest(cliff_amount: BigNumberish, cliff_duration: BigNumberish, recipient:string, activeAddress:string) 
+    async function vest(tokenHash:string, cliff_amount: BigNumberish, cliff_duration: BigNumberish, claimPeriod: BigNumberish, recipient:string, activeAddress:string) 
     {
       let txHash;
       let vestingManager = new VestingClient(
@@ -147,7 +177,7 @@ import {
         const clPubKey = CLPublicKey.fromHex(activeAddress);
         const recipentPubKey = CLPublicKey.fromHex(recipient);
         
-        txHash = await vestingManager.vest(clPubKey, cliff_amount.toString(), cliff_duration.toString(), recipentPubKey.toAccountHashStr(), TRANSFER_FEE);
+        txHash = await vestingManager.vest(clPubKey, tokenHash, cliff_amount.toString(), cliff_duration.toString(), claimPeriod.toString(), recipentPubKey.toAccountHashStr(), TRANSFER_FEE);
       } catch (err) {
         console.log("vest exception1 : ", err);
         return;
@@ -161,7 +191,7 @@ import {
       }
     }
   
-    async function claim(activeAddress:string) {
+    async function claim(activeAddress:string, receipent: string, tokenHash: string) {
       let txHash;
       let vestingManager = new VestingClient(
           NODE_ADDRESS,
@@ -170,7 +200,7 @@ import {
         );
       await vestingManager.setContractHash(vestingContractAddress);
       try {
-        txHash = await vestingManager.claim(CLPublicKey.fromHex(activeAddress), CLPublicKey.fromHex(activeAddress).toAccountHashStr(), TRANSFER_FEE);
+        txHash = await vestingManager.claim(CLPublicKey.fromHex(activeAddress), CLPublicKey.fromHex(receipent).toAccountHashStr(), tokenHash, TRANSFER_FEE);
       } catch (err) {
         return;
       }
@@ -205,7 +235,7 @@ import {
       }
     }
 
-    async function getClaimableAmount(activeAddress:string) {
+    async function getClaimableAmount(activeAddress:string, tokenHash: string) {
       let lockamount;
       let vestingManager = new VestingClient(
           NODE_ADDRESS,
@@ -214,15 +244,16 @@ import {
         );
       await vestingManager.setContractHash(vestingContractAddress);
       try {
-        lockamount = await vestingManager.claimableAmount(CLPublicKey.fromHex(activeAddress).toAccountHashStr());
+        lockamount = await vestingManager.claimableAmount(activeAddress, tokenHash);
         return lockamount;
       } catch (err) {
+        console.log("[useCasperWeb3Provider.js getClaimableAmount()] : ", err);
         return undefined;
       }
     }
 
     
-    async function getVestedAmount(activeAddress:string) {
+    async function getVestedAmount(activeAddress:string, tokenHash: string) {
       let lockamount;
       let vestingManager = new VestingClient(
           NODE_ADDRESS,
@@ -231,14 +262,14 @@ import {
         );
       await vestingManager.setContractHash(vestingContractAddress);
       try {
-        lockamount = await vestingManager.vestedAmount(CLPublicKey.fromHex(activeAddress).toAccountHashStr());
+        lockamount = await vestingManager.vestedAmount(activeAddress, tokenHash);
         return lockamount;
       } catch (err) {
         return undefined;
       }
     }
     
-    async function getHourlyVesting(activeAddress:string) {
+    async function getHourlyVesting(activeAddress:string, tokenHash: string) {
       let lockamount;
       let vestingManager = new VestingClient(
           NODE_ADDRESS,
@@ -247,7 +278,7 @@ import {
         );
       await vestingManager.setContractHash(vestingContractAddress);
       try {
-        lockamount = await vestingManager.hourlyVestAmount(CLPublicKey.fromHex(activeAddress).toAccountHashStr());
+        lockamount = await vestingManager.hourlyVestAmount(activeAddress, tokenHash);
         return lockamount;
       } catch (err) {
         return undefined;
@@ -263,6 +294,8 @@ import {
       getCSPRBalance,
       vest,
       claim,
+      getSymbol,
+      getDecimal,
       totalVestingAmount,
       getClaimableAmount,
       getVestedAmount,
