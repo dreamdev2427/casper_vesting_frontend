@@ -107,8 +107,8 @@ const Vesting = () => {
         try
         {
             let decimal = await getDecimal(VestingTokenHash, activeAddress);
-            console.log("symbol = ", decimal);
-            if(decimal) setVestingTokenDecimal(decimal);
+            console.log("decimal = ", decimal._hex);
+            if(decimal) setVestingTokenDecimal(Number(decimal._hex));
         }
         catch(error){
             console.log(error);
