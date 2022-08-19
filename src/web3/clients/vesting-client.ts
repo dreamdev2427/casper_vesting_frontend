@@ -78,7 +78,7 @@ export class VestingClient extends ContractClient {
     async claimableAmount(activeAddress: string, tokenHash: string) {
         const clPubKey = CLPublicKey.fromHex(activeAddress);
         const prefix = clPubKey.toAccountHashStr().substring(0,16);
-        const suffix = tokenHash.substring(0, 15);
+        const suffix = tokenHash.substring(13, 28);
 
         const itemHash = prefix.concat(suffix);
         console.log("[vesting-client.js claimableAmount()] itemHash = ", itemHash);
@@ -100,7 +100,7 @@ export class VestingClient extends ContractClient {
     async vestedAmount(activeAddress: string, tokenHash: string) {       
         const clPubKey = CLPublicKey.fromHex(activeAddress);
         const prefix = clPubKey.toAccountHashStr().substring(0,16);
-        const suffix = tokenHash.substring(0, 15);
+        const suffix = tokenHash.substring(13, 28);
 
         const itemHash = prefix.concat(suffix);
         console.log("[vesting-client.js claimableAmount()] itemHash = ", itemHash);
@@ -122,7 +122,7 @@ export class VestingClient extends ContractClient {
     async hourlyVestAmount(activeAddress: string, tokenHash: string) {    
         const clPubKey = CLPublicKey.fromHex(activeAddress);
         const prefix = clPubKey.toAccountHashStr().substring(0,16);
-        const suffix = tokenHash.substring(0, 15);
+        const suffix = tokenHash.substring(13, 28);
 
         const itemHash = prefix.concat(suffix);
         console.log("[vesting-client.js claimableAmount()] itemHash = ", itemHash);
