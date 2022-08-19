@@ -209,7 +209,7 @@ import {
       }
     }
        
-    async function calc_claimable_amount() {      
+    async function calc_claimable_amount(activeAddress:string,  tokenHash: string) {      
       let txHash;
       let vestingManager = new VestingClient(
           NODE_ADDRESS,
@@ -218,7 +218,7 @@ import {
         );
       await vestingManager.setContractHash(vestingContractAddress);
       try {
-        txHash = await vestingManager.claimable_amount(CLPublicKey.fromHex(activeAddress), CLPublicKey.fromHex(activeAddress).toAccountHashStr(), TRANSFER_FEE);
+        txHash = await vestingManager.claimable_amount(CLPublicKey.fromHex(activeAddress), CLPublicKey.fromHex(activeAddress).toAccountHashStr(), tokenHash,TRANSFER_FEE);
       } catch (err) {
         return;
       }
@@ -232,7 +232,7 @@ import {
     }
 
     async function getClaimableAmount(activeAddress:string, tokenHash: string) {
-      let lockamount;
+      let claimableamount;
       let vestingManager = new VestingClient(
           NODE_ADDRESS,
           CHAIN_NAME,
@@ -240,14 +240,14 @@ import {
         );
       await vestingManager.setContractHash(vestingContractAddress);
       try {
-        lockamount = await vestingManager.claimableAmount(activeAddress, tokenHash);
-        return lockamount;
+        claimableamount = await vestingManager.claimableAmount(activeAddress, tokenHash);
+        console.log("claimableamount = ", claimableamount);
+        return claimableamount;
       } catch (err) {
         console.log("[useCasperWeb3Provider.js getClaimableAmount()] : ", err);
         return undefined;
       }
     }
-
     
     async function getVestedAmount(activeAddress:string, tokenHash: string) {
       let lockamount;

@@ -39,8 +39,9 @@ const Vesting = () => {
     const [claimableAmount, setClaimableAmount] = useState(0);
     const [ClaimPeriod, setClaimPeriod] = useState(1);
     const [vestingTokenSymbol, setVestingTokenSymbol] = useState("ACME"); 
-    const prevVestingTokenHash = usePrevious(VestingTokenHash);
     const [vestingTokenDecimal, setVestingTokenDecimal] = useState(6); 
+    const prevVestingTokenHash = usePrevious(VestingTokenHash);
+    const prevActiveAddress = usePrevious(activeAddress);
 
     function usePrevious(value) {
         // The ref object is a generic container whose current property is mutable ...
@@ -55,7 +56,7 @@ const Vesting = () => {
       }
 
     useEffect(() => {        
-      if(!!activeAddress && activeAddress !== "") {
+      if(!!activeAddress && activeAddress !== "" && activeAddress !== prevActiveAddress) {
         initializeInformation();
       }
     }, [activeAddress])
@@ -77,13 +78,17 @@ const Vesting = () => {
             if(!!activeAddress && activeAddress !== "") {
                 calcAndReadClaimiInfor();
             }
-        }, 6000000);
+        }, 18000000);
         return () => clearInterval(interval);
     }, []);
 
-    const calcAndReadClaimiInfor = async () => {         
-        await calc_claimable_amount(activeAddress);
+    const calcAndReadClaimiInfor = async () => {    
+        setWorking(true);
+        try{     
+        await calc_claimable_amount(activeAddress, VestingTokenHash);
         await fetchClaimableAmount();
+        }catch(e){setWorking(false)}
+        setWorking(false);
     }
 
     const initializeInformation = async () => {           
@@ -138,14 +143,17 @@ const Vesting = () => {
 
     const getMyTokenBalance = async () => {        
         if(!!VestingTokenHash && VestingTokenHash !== "") {
+            try{
             const balance = await balanceOf(VestingTokenHash, activeAddress);
             console.log("balance = ", Number(balance)/(10**vestingTokenDecimal));
             setMyBalance(Number(balance)/(10**vestingTokenDecimal));
+            }catch(error){}
         }
     }
 
     const getMyVestedAmount = async () => {        
         if(!!activeAddress && activeAddress !== "" && !!VestingTokenHash && VestingTokenHash !== "") {
+            try{
             const va = await getVestedAmount(activeAddress, VestingTokenHash);
             if(va) 
             {
@@ -153,11 +161,13 @@ const Vesting = () => {
                 console.log(temp);
                 setMyVested(temp);        
             }
+        }catch(error){}
         }
     }
 
     const getMyHourlyVesting = async () => { 
         if(!!activeAddress && activeAddress !== "" && !!VestingTokenHash && VestingTokenHash !== "") {
+            try{
             const hv = await getHourlyVesting(activeAddress, VestingTokenHash);
             if(hv) 
             {
@@ -165,12 +175,13 @@ const Vesting = () => {
                 console.log(temp);
                 sethourlyVesting(temp);        
             }
+        }catch(error){}
         }
     }
 
     const fetchClaimableAmount = async () => {
         if(!!activeAddress && activeAddress !== "" && !!VestingTokenHash && VestingTokenHash !== "") {
-            console.log("fetchClaimableAmount() 00")
+            try{
             const lockamount = await getClaimableAmount(activeAddress, VestingTokenHash);
             if(lockamount) 
             {
@@ -178,6 +189,7 @@ const Vesting = () => {
                 console.log("claimable_amount = ", aa);
                 setClaimableAmount(aa);        
             }
+        }catch(error){}
         }
     }
 
@@ -188,24 +200,39 @@ const Vesting = () => {
     const handleVest = async () => {       
         if(!!activeAddress && activeAddress !== "" && !!VestingTokenHash && VestingTokenHash !== "") { 
             setWorking(true);
+            let currentAllowance,vestingAmount;
             try
             {
-                let currentAllowance =  await allowanceOf(VestingTokenHash, vestingContractPackageHash, activeAddress);
+                currentAllowance =  await allowanceOf(VestingTokenHash, vestingContractPackageHash, activeAddress);
                 currentAllowance =  BigNumber(Math.floor(Number(currentAllowance)));
                 console.log("currentAllowance = ", currentAllowance.toString());
                 var decimals =  BigNumber("10").power(vestingTokenDecimal);
-                let vestingAmount = BigNumber((VestingAmount).toString()).multiply(decimals);
+                vestingAmount = BigNumber((VestingAmount).toString()).multiply(decimals);
                 var max_allowance =  BigNumber("9999999999999").multiply(decimals);
                 if(currentAllowance - BigNumber(VestingAmount) < 0)
                 {   
                     await approve(max_allowance.toString(), VestingTokenHash, vestingContractPackageHash, activeAddress);
-                }
-                await vest(VestingTokenHash, vestingAmount, BigNumber(VestingDuration*1000*3600), BigNumber(ClaimPeriod*1000*3600), receipentAddress, activeAddress);
-                await initializeInformation();
+                }               
             }
             catch(error){
                 setWorking(false);
                 console.log("handleVest exception : ", error);
+                return;
+            }
+            try{                
+                await vest(VestingTokenHash, vestingAmount, BigNumber(VestingDuration), BigNumber(ClaimPeriod), receipentAddress, activeAddress);
+            }catch(error){
+                setWorking(false);
+                return;
+            }
+            try{                
+                setVestingAmount(0);
+                setVestingDuration(1);
+                setClaimPeriod(1);
+                await initializeInformation();
+            }catch(error){
+                setWorking(false);
+                return;
             }
             setWorking(false);
         }
@@ -217,6 +244,14 @@ const Vesting = () => {
             try
             {
                 await claim(activeAddress, receipentAddress, VestingTokenHash);
+            }
+            catch(error){
+                setWorking(false);
+                console.log("claim error : ", error);
+                return;
+            }
+            try
+            {
                 await initializeInformation();
             }
             catch(error){
@@ -252,6 +287,33 @@ const Vesting = () => {
                         <Grid item sm={12} md={12} lg={12} xl={12} mt={2}>
                             <Divider color="white" />
                         </Grid>
+                        
+                        <Grid container alignItems='center' justifyContent='space-between' style={{ padding: 2, marginTop:"10px", border: '2px solid white', borderRadius: 12 }}>
+                            <Grid item sm={6} md={6} lg={6} xl={6} px={2} pt={1}>
+                                <Typography variant="h6" sx={{ color: 'white' }} align="left">Token Hash</Typography>
+                            </Grid>
+                            <Grid item sm={6} md={6} lg={6} xl={6} px={2} pt={1}>
+                                <Typography variant="h6" sx={{ color: 'white' }} align="right"></Typography>
+                            </Grid>
+                            <Grid item sm={6} md={6} lg={6} xl={6} px={2} py={1}>
+                                <Grid container alignItems='flex-end' >
+                                    <Grid item >
+                                        <TextField size="medium" type='text' variant="standard" defaultValue={""} 
+                                            sx={{ backgroundColor: 'transparent', input: { color: 'white', borderColor: 'white', fontSize: 16 }, width: 800 }} 
+                                            value={ VestingTokenHash }
+                                            onChange={(e) => setVestingTokenHash(e.target.value)}
+                                            placeholder="b02ec9fe439a945bcc0cc4a786f22fab7ae41829e10ea029e6f82af1b3833b60" 
+                                        />
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+                            <Grid item sm={6} md={6} lg={6} xl={6} px={2} py={1}>
+                                <Grid container alignItems='center' justifyContent='right'>
+                                    <Grid item sm={6} md={3} lg={3} xl={3}>                                                            
+                                    </Grid>                                                       
+                                </Grid>
+                            </Grid>
+                        </Grid>
                         <Grid item sm={12} md={12} lg={12} xl={12} p={2}>
                             <Grid container>
                                 <Box sx={{ width: '100%', typography: 'body1', padding: 2 }}>
@@ -269,34 +331,9 @@ const Vesting = () => {
                                             </Box>
                                         </Grid>
                                     </Grid>
+                                    
                                     {switchPanal ? (
                                         <>
-                                            <Grid container alignItems='center' justifyContent='space-between' style={{ border: '2px solid white', borderRadius: 12 }}>
-                                                <Grid item sm={6} md={6} lg={6} xl={6} px={2} pt={1}>
-                                                    <Typography variant="h6" sx={{ color: 'white' }} align="left">Token Hash</Typography>
-                                                </Grid>
-                                                <Grid item sm={6} md={6} lg={6} xl={6} px={2} pt={1}>
-                                                    <Typography variant="h6" sx={{ color: 'white' }} align="right"></Typography>
-                                                </Grid>
-                                                <Grid item sm={6} md={6} lg={6} xl={6} px={2} py={1}>
-                                                    <Grid container alignItems='flex-end' >
-                                                        <Grid item >
-                                                            <TextField size="medium" type='text' variant="standard" defaultValue={""} 
-                                                                sx={{ backgroundColor: 'transparent', input: { color: 'white', borderColor: 'white', fontSize: 16 }, width: 800 }} 
-                                                                value={ VestingTokenHash }
-                                                                onChange={(e) => setVestingTokenHash(e.target.value)}
-                                                                placeholder="b02ec9fe439a945bcc0cc4a786f22fab7ae41829e10ea029e6f82af1b3833b60" 
-                                                            />
-                                                        </Grid>
-                                                    </Grid>
-                                                </Grid>
-                                                <Grid item sm={6} md={6} lg={6} xl={6} px={2} py={1}>
-                                                    <Grid container alignItems='center' justifyContent='right'>
-                                                        <Grid item sm={6} md={3} lg={3} xl={3}>                                                            
-                                                        </Grid>                                                       
-                                                    </Grid>
-                                                </Grid>
-                                            </Grid>
                                             <Grid container alignItems='center' justifyContent='space-between' style={{ border: '2px solid white', marginTop:"10px", borderRadius: 12 }}>
                                                 <Grid item sm={6} md={6} lg={6} xl={6} px={2} pt={1}>
                                                     <Typography variant="h6" sx={{ color: 'white' }} align="left">Amount</Typography>
@@ -349,7 +386,7 @@ const Vesting = () => {
                                                 </Grid>
                                                 <Grid item sm={6} md={6} lg={6} xl={6} px={2} py={1}>
                                                     <Grid container alignItems='center' justifyContent='right'>
-                                                        <Typography color='#fff'>Hour</Typography>                                                     
+                                                        <Typography color='#fff'>ms</Typography>                                                     
                                                     </Grid>
                                                 </Grid>
                                             </Grid>            
@@ -374,7 +411,7 @@ const Vesting = () => {
                                                 </Grid>
                                                 <Grid item sm={6} md={6} lg={6} xl={6} px={2} py={1}>
                                                     <Grid container alignItems='center' justifyContent='right'>
-                                                        <Typography color='#fff'>Hour</Typography>                                                     
+                                                        <Typography color='#fff'>ms</Typography>                                                     
                                                     </Grid>
                                                 </Grid>
                                             </Grid>                                          

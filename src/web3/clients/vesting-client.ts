@@ -185,11 +185,14 @@ export class VestingClient extends ContractClient {
     async claimable_amount(
         publicKey: CLPublicKey,
         recipient: string,
+        token_hash: string,
         paymentAmount: BigNumberish,
         ttl = DEFAULT_TTL
     ) {
         const runtimeArgs = RuntimeArgs.fromMap({
-            recipient: new CLString(recipient.toString())
+            "recipient": new CLString(recipient.toString()),
+            "token-hash": new CLString("contract-"+token_hash),
+            "uparse": new CLU64("9")
         });
 
         return await this.contractCallWithSigner({
