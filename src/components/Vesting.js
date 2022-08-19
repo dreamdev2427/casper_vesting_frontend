@@ -4,7 +4,7 @@ import { Divider, Grid, Typography, Box, Button,  TextField } from "@mui/materia
 import {useSelector} from "react-redux";
 import BigNumber from "big-number";
 
-import {vestingContractAddress, vestingContractPackageHash } from "../config";
+import {vestingContractAddress, vestingContractPackageHash, vestingTokenAddress } from "../config";
 import useCasperWeb3Provider from "../web3";
 
 const Vesting = () => {
@@ -30,7 +30,7 @@ const Vesting = () => {
     const [totalVolumnInVesting, setTotalVolumnVested] = useState(0);
     const [myVested, setMyVested] = useState(0);
     const [myBalance, setMyBalance] = useState(0);
-    const [VestingTokenHash, setVestingTokenHash] = useState("6f1392e21bf27f57bc8878ba404fb7d0ef63109481253f5df86ae6f373578d6c");
+    const [VestingTokenHash, setVestingTokenHash] = useState(vestingTokenAddress);
     const [VestingAmount, setVestingAmount] = useState(0);
     const [VestingDuration, setVestingDuration] = useState(1);
     const [receipentAddress, setReceipentAddress] = useState("0202cccb84498ead918e208e8424ec2b13c493c2d76f7d246b51596d12cf5c84e58f");
@@ -152,7 +152,7 @@ const Vesting = () => {
             const hv = await getHourlyVesting(activeAddress, VestingTokenHash);
             if(hv) 
             {
-                let temp = Number(hv._hex);
+                let temp = Number(hv._hex)/(10**vestingTokenDecimal);
                 console.log(temp);
                 sethourlyVesting(temp);        
             }

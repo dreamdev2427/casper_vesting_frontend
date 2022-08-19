@@ -1,5 +1,5 @@
-export const vestingTokenAddress = "6f1392e21bf27f57bc8878ba404fb7d0ef63109481253f5df86ae6f373578d6c";
+export const vestingTokenAddress = "de93171e1867e787f771a8ad04dd33b1167fbf9cdde1468443dcb640fccca1a0";
 export const vestingTokenSymbol = "ACME";
-export const vestingContractAddress = "fb09b0e03a0ef6e26259b6f6e15e048a8a6d6dbe4759afac85b9c5cee318cfef";
-export const vestingContractPackageHash = "0246a5163d4881fcde0cb275d6e41a92b17330e7f859c8e7199a012150545ef7";
-export const urfOfUserInfo = "uref-162dafd74d4589a7d4160a034e8166057bef82d7ca08b28864ce3b6c09626239-007";
+export const vestingContractAddress = "6cdfe85c0c43dcadde55191e31fe29c4b93f253c499f4142db7422d8d418e050";
+export const vestingContractPackageHash = "d914408555ec1dde3907dc929f6e0c7be24b62d993d71d943d8581e6646e3a70";
+export const urfOfUserInfo = "uref-01b7c8f765aa46e898cb41cfe77ff00310bc25695c3b31b84ae0e4d162df5d00-007";

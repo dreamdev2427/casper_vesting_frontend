@@ -77,11 +77,10 @@ export class VestingClient extends ContractClient {
     
     async claimableAmount(activeAddress: string, tokenHash: string) {
         const clPubKey = CLPublicKey.fromHex(activeAddress);
-        const prefix = clPubKey.toAccountHashStr().substring(0,16);
-        const suffix = tokenHash.substring(13, 28);
+        const prefix = clPubKey.toAccountHashStr().substring(13, 29);
+        const suffix = tokenHash.substring(0,15);
 
-        const itemHash = prefix.concat(suffix);
-        console.log("[vesting-client.js claimableAmount()] itemHash = ", itemHash);
+        const itemHash = prefix+suffix;
         try {
             const result = await utils.contractDictionaryGetter(
                 this.nodeAddress,
@@ -92,18 +91,16 @@ export class VestingClient extends ContractClient {
             return userInfo;
         }
         catch (error: any) {
-            console.log("claimableAmount exception : ", error);
             return undefined;
         }
     }
 
     async vestedAmount(activeAddress: string, tokenHash: string) {       
         const clPubKey = CLPublicKey.fromHex(activeAddress);
-        const prefix = clPubKey.toAccountHashStr().substring(0,16);
-        const suffix = tokenHash.substring(13, 28);
+        const prefix = clPubKey.toAccountHashStr().substring(13, 29);
+        const suffix = tokenHash.substring(0,15);
 
-        const itemHash = prefix.concat(suffix);
-        console.log("[vesting-client.js claimableAmount()] itemHash = ", itemHash);
+        const itemHash = prefix+suffix;
         try {
             const result = await utils.contractDictionaryGetter(
                 this.nodeAddress,
@@ -114,18 +111,16 @@ export class VestingClient extends ContractClient {
             return userInfo;
         }
         catch (error: any) {
-            console.log("claimableAmount exception : ", error);
             return undefined;
         }
     }
         
     async hourlyVestAmount(activeAddress: string, tokenHash: string) {    
         const clPubKey = CLPublicKey.fromHex(activeAddress);
-        const prefix = clPubKey.toAccountHashStr().substring(0,16);
-        const suffix = tokenHash.substring(13, 28);
+        const prefix = clPubKey.toAccountHashStr().substring(13, 29);
+        const suffix = tokenHash.substring(0,15);
 
-        const itemHash = prefix.concat(suffix);
-        console.log("[vesting-client.js claimableAmount()] itemHash = ", itemHash);
+        const itemHash = prefix+suffix;
         try {
             const result = await utils.contractDictionaryGetter(
                 this.nodeAddress,
@@ -136,7 +131,6 @@ export class VestingClient extends ContractClient {
             return userInfo;
         }
         catch (error: any) {
-            console.log("claimableAmount exception : ", error);
             return undefined;
         }
     }
