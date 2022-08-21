@@ -20,9 +20,12 @@ const Vesting = () => {
         getVestedAmount,
         getLockedAmount,
         getHourlyVesting,
-        calc_claimable_amount,
         getSymbol,
-        getDecimal
+        getDecimal,
+        getClaimPeriod,
+        getUserInfoCount,
+        getLockTimestamp,
+        getDuration
       } = useCasperWeb3Provider();
 
     
@@ -37,11 +40,10 @@ const Vesting = () => {
     const [VestingAmount, setVestingAmount] = useState(0);
     const [VestingDuration, setVestingDuration] = useState(1);
     const [receipentAddress, setReceipentAddress] = useState("0202cccb84498ead918e208e8424ec2b13c493c2d76f7d246b51596d12cf5c84e58f");
-    const [hourlyVesting, sethourlyVesting] = useState(0);
-    const [claimableAmount, setClaimableAmount] = useState(0);
     const [ClaimPeriod, setClaimPeriod] = useState(1);
     const [vestingTokenSymbol, setVestingTokenSymbol] = useState("ACME"); 
     const [vestingTokenDecimal, setVestingTokenDecimal] = useState(6); 
+    const [userInfo, setUserInfo] = useState([]);
     const prevVestingTokenHash = usePrevious(VestingTokenHash);
     const prevActiveAddress = usePrevious(activeAddress);
 
@@ -58,159 +60,123 @@ const Vesting = () => {
       }
 
     useEffect(() => {        
-      if(!!activeAddress && activeAddress !== "" && activeAddress !== prevActiveAddress) {
+      if(!!activeAddress && activeAddress !== "" && activeAddress !== prevActiveAddress || 
+      !!VestingTokenHash && VestingTokenHash !== "" && VestingTokenHash !== prevVestingTokenHash) {
         initializeInformation();
       }
-    }, [activeAddress])
+    }, [activeAddress, VestingTokenHash])
 
     useEffect(() => {
-        if(!!VestingTokenHash && VestingTokenHash !== "" && VestingTokenHash !== prevVestingTokenHash) {      
-            setWorking(true); 
-            try{    
-             getTokenSymbol();
-             getMyTokenBalance();      
-             getTokenDecimal();        
-            }catch(e){ setWorking(false); }
-             setWorking(false);     
-        }
-    }, [VestingTokenHash])
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            if(!!activeAddress && activeAddress !== "") {
-                calcAndReadClaimiInfor();
-            }
-        }, 18000000);
+        let interval = 0;
+        setTimeout(() => {
+            interval = setInterval(() => {
+                if(!!activeAddress && activeAddress !== "" && !!VestingTokenHash && VestingTokenHash) {
+                    initializeInformation();
+                }
+            }, 600000);
+        }, 600000);
         return () => clearInterval(interval);
     }, []);
 
-    const calcAndReadClaimiInfor = async () => {    
-        setWorking(true);
-        try{     
-        await getMyTokenBalance();        
-        await getMyVestedAmount();
-        await getMyLockedAmount();
-        await getMyHourlyVesting();
-        await calc_claimable_amount(activeAddress, VestingTokenHash);
-        await fetchClaimableAmount();
-        }catch(e){setWorking(false)}
-        setWorking(false);
+    const calculateClaimableAmount = (locktimestamp, releasetimeunit, releaseamountperhour, lockedamount, vestedamount) =>{
+        let calsResult = 0;
+        if(locktimestamp>=0 && releasetimeunit>=0 && releaseamountperhour>=0 && lockedamount>=0 && vestedamount>=0)
+        {
+            let past_hours = (Date.now() * 1000 - locktimestamp)/releasetimeunit;
+            let vestable_till_now = releaseamountperhour * past_hours;
+            if(vestable_till_now > lockedamount) vestable_till_now = lockedamount;
+            calsResult = vestable_till_now - vestedamount;
+        }
+        return calsResult;
     }
 
     const initializeInformation = async () => {           
         setWorking(true);     
-        try{
-        await getTotalVoumnOfVesting();
-        await getTokenSymbol();
-        await getTokenDecimal();
-        await getMyTokenBalance();        
-        await getMyVestedAmount();
-        await getMyLockedAmount();
-        await getMyHourlyVesting();
-        await calcAndReadClaimiInfor();
-        }catch(e){setWorking(false);}
-        setWorking(false);
-    }
-
-    const getTotalVoumnOfVesting = async () => {
-        try
-        {
-            let tva = await totalVestingAmount(vestingContractAddress);
-            console.log("tva = ", tva && Number(tva)/(10**vestingTokenDecimal));
-            if(tva) setTotalVolumnVested(Number(tva)/(10**vestingTokenDecimal));
-        }
-        catch(error){
-            console.log(error);
-        }
-    }
-
-    const getTokenDecimal = async () => {
-        try
-        {
-            let decimal = await getDecimal(VestingTokenHash, activeAddress);
-            console.log("decimal = ", decimal._hex);
-            if(decimal) setVestingTokenDecimal(Number(decimal._hex));
-        }
-        catch(error){
-            console.log(error);
-        }
-    }
-
-    const getTokenSymbol = async () => {
-        try
-        {
-            let symbol = await getSymbol(VestingTokenHash, activeAddress);
-            console.log("symbol = ", symbol);
-            if(symbol) setVestingTokenSymbol(symbol);
-        }
-        catch(error){
-            console.log(error);
-        }
-    }
-
-    const getMyTokenBalance = async () => {        
-        if(!!VestingTokenHash && VestingTokenHash !== "") {
-            try{
-            const balance = await balanceOf(VestingTokenHash, activeAddress);
-            console.log("balance = ", Number(balance)/(10**vestingTokenDecimal));
-            setMyBalance(Number(balance)/(10**vestingTokenDecimal));
-            }catch(error){}
-        }
-    }
-
-    const getMyLockedAmount = async () => {        
-        if(!!activeAddress && activeAddress !== "" && !!VestingTokenHash && VestingTokenHash !== "") {
-            try{
-            const va = await getLockedAmount(activeAddress, VestingTokenHash);
-            if(va) 
+        let promiseArray = [], infoCount = 0;
+        promiseArray.push(totalVestingAmount(vestingContractAddress));
+        promiseArray.push(getSymbol(VestingTokenHash, activeAddress));
+        promiseArray.push(getDecimal(VestingTokenHash, activeAddress));
+        promiseArray.push(balanceOf(VestingTokenHash, activeAddress));        
+        promiseArray.push(getVestedAmount(activeAddress, VestingTokenHash));  
+        promiseArray.push(getUserInfoCount(activeAddress, VestingTokenHash));
+        await Promise.all(promiseArray)
+        .then((values) => {
+            if(values[0]) 
             {
-                console.log("lockedamount = ", temp);
-                let temp = Number(va._hex)/(10**vestingTokenDecimal);
-                setMyLocked(temp);        
+                console.log("tva = ", values[0] && Number(values[0])/(10**vestingTokenDecimal));
+                setTotalVolumnVested(Number(values[0])/(10**vestingTokenDecimal));                
             }
-        }catch(error){}
-        }
-    }
-
-    const getMyVestedAmount = async () => {        
-        if(!!activeAddress && activeAddress !== "" && !!VestingTokenHash && VestingTokenHash !== "") {
-            try{
-            const va = await getVestedAmount(activeAddress, VestingTokenHash);
-            if(va) 
+            if(values[1]) 
             {
+                console.log("symbol = ", values[1]);
+                setVestingTokenSymbol(values[1]);
+            }
+            if(values[2]) 
+            {
+                console.log("decimal = ", values[2]._hex);
+                setVestingTokenDecimal(Number(values[2]._hex));
+            }
+            if(values[3]) 
+            {
+                console.log("balance = ", Number(values[3])/(10**vestingTokenDecimal));
+                setMyBalance(Number(values[3])/(10**vestingTokenDecimal));
+            }
+            let temp = 0;
+            if(values[4]) 
+            {
+                temp = Number(values[4]._hex)/(10**vestingTokenDecimal);
                 console.log("vestedamount = ", temp);
-                let temp = Number(va._hex)/(10**vestingTokenDecimal);
                 setMyVested(temp);        
             }
-        }catch(error){}
-        }
-    }
-
-    const getMyHourlyVesting = async () => { 
-        if(!!activeAddress && activeAddress !== "" && !!VestingTokenHash && VestingTokenHash !== "") {
-            try{
-            const hv = await getHourlyVesting(activeAddress, VestingTokenHash);
-            if(hv) 
+            if(values[5]) 
             {
-                let temp = Number(hv._hex)/(10**vestingTokenDecimal);
-                console.log(temp);
-                sethourlyVesting(temp);        
+                temp = Number(values[5]._hex);
+                console.log("userinfocount = ", temp);
+                infoCount = temp;    
             }
-        }catch(error){}
-        }
-    }
-
-    const fetchClaimableAmount = async () => {
-        if(!!activeAddress && activeAddress !== "" && !!VestingTokenHash && VestingTokenHash !== "") {
-            try{
-            const lockamount = await getClaimableAmount(activeAddress, VestingTokenHash);
-            if(lockamount) 
-            {
-                let aa = Number(lockamount._hex)/(10**vestingTokenDecimal);
-                setClaimableAmount(aa);        
+        })
+        .catch((error) => {
+            setWorking(false);
+            return;
+        });
+        console.log("infocount = ", infoCount);
+        if(infoCount > 0)
+        {   
+            let tempUserInfo = [];
+            promiseArray = [];
+            for(let idx=0; idx<infoCount; idx++)
+            {                
+                promiseArray.push(getLockTimestamp(activeAddress, VestingTokenHash, idx));
+                promiseArray.push(getLockedAmount(activeAddress, VestingTokenHash, idx));
+                promiseArray.push(getHourlyVesting(activeAddress, VestingTokenHash, idx));
+                promiseArray.push(getClaimPeriod(activeAddress, VestingTokenHash, idx));
+                promiseArray.push(getDuration(activeAddress, VestingTokenHash, idx));
+                promiseArray.push(getVestedAmount(activeAddress, VestingTokenHash, idx));
             }
-        }catch(error){}
+            await Promise.all(promiseArray)
+            .then((values) => {
+                for(let idx=0; idx<infoCount; idx++)
+                {
+                    tempUserInfo[idx] = {
+                        locktimestamp: values[idx*4] ? Number(values[idx*4]._hex) : 0,
+                        lockedamount: values[idx*4+1] ? Number(values[idx*4+1]._hex)/(10**vestingTokenDecimal) : 0,
+                        hourlyvesting: values[idx*4+2] ? Number(values[idx*4+2]._hex)/(10**vestingTokenDecimal) : 0,
+                        claimperiod: values[idx*4+3] ? Number(values[idx*4+3]._hex) : 0,           
+                        duration: values[idx*4+4] ? Number(values[idx*4+4]._hex) : 0,  
+                        vestedamount: values[idx*4+5] ? Number(values[idx*4+5]._hex)/(10**vestingTokenDecimal) : 0,
+                        claimableamount:                  
+                            calculateClaimableAmount(Number(values[idx*4]._hex), Number(values[idx*4+3]._hex), Number(values[idx*4+2]._hex)/(10**vestingTokenDecimal), Number(values[idx*4+1]._hex), Number(values[idx*4+5]._hex)/(10**vestingTokenDecimal))/(10**vestingTokenDecimal)
+                    }              
+                }
+                console.log(tempUserInfo);  
+                setUserInfo(tempUserInfo);
+            })
+            .catch((error) => {
+                setWorking(false);
+                return;
+            });
         }
+        setWorking(false);
     }
 
     const onClickMax = async () => {     
@@ -258,12 +224,12 @@ const Vesting = () => {
         }
     }
 
-    const handleClaim = async () => {       
+    const handleClaim = async (index) => {       
         if(!!activeAddress && activeAddress !== "") {             
             setWorking(true);
             try
             {
-                await claim(activeAddress, receipentAddress, VestingTokenHash);
+                await claim(activeAddress, receipentAddress, VestingTokenHash, index);
             }
             catch(error){
                 setWorking(false);
@@ -287,30 +253,14 @@ const Vesting = () => {
             <Grid container justifyContent='center' style={{flex:1}} p={4}>
                 <Grid item sm={12} md={10} lg={10} xl={10} style={{ border: '2px solid white',flex:1 }}>
                     <Grid container pt={2} alignItems='center' justifyContent='space-around'>
-                        {
-                            switchPanal && 
-                        <Grid item sm={3} md={3} lg={3} xl={3}>
+                        <Grid item sm={4} md={4} lg={4} xl={4} sx={{display:"flex", alignItems:"center", flexDirection:"column"}}>
                             <Typography sx={{ color: 'white' }} variant="body1">Total Volume in vesting</Typography>
                             <Typography sx={{ color: 'white' }} variant="h6" fontWeight='bold'>{totalVolumnInVesting} {vestingTokenSymbol}</Typography>
                         </Grid>
-                        }
-                        {
-                            !switchPanal && 
-                            <>
-                            <Grid item sm={3} md={3} lg={3} xl={3}>
-                                <Typography sx={{ color: 'white' }} variant="body1">My Volume in vesting</Typography>
-                                <Typography sx={{ color: 'white' }} variant="h6" fontWeight='bold'>{Number(myLocked)+Number(myVested)} {vestingTokenSymbol}</Typography>
-                            </Grid>
-                            <Grid item sm={3} md={3} lg={3} xl={3}>
-                                <Typography sx={{ color: 'white' }} variant="body1">Hourly Rate</Typography>
-                                <Typography sx={{ color: '#fa9422' }} variant="h6" fontWeight='bold'>{hourlyVesting} {vestingTokenSymbol} </Typography>
-                            </Grid>
-                            <Grid item sm={3} md={3} lg={3} xl={3}>
-                                <Typography sx={{ color: 'white' }} variant="body1">My Vested</Typography>
-                                <Typography sx={{ color: 'white' }} variant="h6" fontWeight='bold'>{myVested} {vestingTokenSymbol}</Typography>
-                            </Grid>                        
-                            </>
-                        }
+                        <Grid item sm={4} md={4} lg={4} xl={4} sx={{display:"flex", alignItems:"center", flexDirection:"column"}}>
+                            <Typography sx={{ color: 'white' }} variant="body1">My Balance</Typography>
+                            <Typography sx={{ color: 'white' }} variant="h6" fontWeight='bold'>{Number(myBalance)} {vestingTokenSymbol}</Typography>
+                        </Grid>
                         <Grid item sm={12} md={12} lg={12} xl={12} mt={2}>
                             <Divider color="white" />
                         </Grid>
@@ -472,31 +422,37 @@ const Vesting = () => {
                                             >Vest {vestingTokenSymbol}</Button>
                                         </>
                                     ) : (<>
-                                        <Grid container alignItems='center' mb={2} py={2} justifyContent='space-between' style={{ border: '2px solid white', borderRadius: 12 }}>
-                                            <Grid item sm={6} md={6} lg={6} xl={6} px={2}>
-                                                <Typography variant="h6" sx={{ color: 'white' }} lineHeight={2} align="left">{vestingTokenSymbol}</Typography>
-                                            </Grid>
-                                            <Grid item sm={4} md={4} lg={4} xl={4} px={4}>
-                                                <Typography variant="h6" sx={{ color: 'white' }} align="right">Available Amount</Typography>
-                                            </Grid>
-                                            <Grid item sm={6} md={6} lg={6} xl={6} px={2}>
-                                                <Typography variant="body1" sx={{ color: 'white' }} align="left">Balance : {myBalance} {vestingTokenSymbol}</Typography>
-                                            </Grid>
-                                            <Grid item sm={6} md={6} lg={6} xl={6} px={2} py={1} >
-                                                <Grid container alignItems='flex-end' display="flex" justifyContent={"end"}>
-                                                    <Grid item>
-                                                        <Typography variant="body1" sx={{ color: 'white', fontSize: 24, display: 'inline', marginLeft: 2 }} align="left">{Number(claimableAmount).toFixed(4) }</Typography>                                                       
+                                        {
+                                            userInfo.map((item, index) => (
+                                                <Grid container key={index} alignItems='center' mb={2} py={2} justifyContent='space-between' 
+                                                    style={{ border: '2px solid white', borderRadius: 12, cursor:"pointer", userSelect:"none" }}
+                                                    onClick={()=> handleClaim(index)}
+                                                >
+                                                    <Grid item sm={6} md={6} lg={6} xl={6} px={2}>
+                                                        <Typography variant="h6" sx={{ color: 'white' }} lineHeight={2} align="left">{vestingTokenSymbol}</Typography>
+                                                    </Grid>
+                                                    <Grid item sm={4} md={4} lg={4} xl={4} px={4}>
+                                                        <Typography variant="h6" sx={{ color: 'white' }} align="right">Available to Claim</Typography>
+                                                    </Grid>
+                                                    <Grid item sm={6} md={6} lg={6} xl={6} px={2}>
+                                                        <Typography variant="body1" sx={{ color: 'white' }} align="left">Claim Period : {item.claimperiod} ms</Typography>
+                                                    </Grid>
+                                                    <Grid item sm={6} md={6} lg={6} xl={6} px={2} py={1} >
+                                                    </Grid>
+                                                    <Grid item sm={6} md={6} lg={6} xl={6} px={2}>
+                                                        <Typography variant="body1" sx={{ color: 'white' }} align="left">Duration : {item.duration} ms</Typography>
+                                                    </Grid>
+                                                    <Grid item sm={6} md={6} lg={6} xl={6} px={2} py={1} >
+                                                        <Typography variant="h6" sx={{ color: 'white' }} align="right"> {item.claimableamount} </Typography>
+                                                    </Grid>
+                                                    <Grid item sm={6} md={6} lg={6} xl={6} px={2}>
+                                                        <Typography variant="body1" sx={{ color: 'white' }} align="left">Total Locked : {item.lockedamount} {vestingTokenSymbol}</Typography>
+                                                    </Grid>
+                                                    <Grid item sm={6} md={6} lg={6} xl={6} px={2} py={1} >
                                                     </Grid>
                                                 </Grid>
-                                            </Grid>
-                                        </Grid>
-                                        <Grid container spacing={2}>
-                                            <Grid item xs={12} sm={12}>
-                                                <Button variant="contained" size="large" fullWidth
-                                                    onClick={() => { handleClaim() }}
-                                                >Claim {vestingTokenSymbol}</Button>
-                                            </Grid>
-                                        </Grid>
+                                            ))
+                                        }
                                     </>)}
                                 </Box>
                             </Grid>

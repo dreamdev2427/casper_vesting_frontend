@@ -187,7 +187,7 @@ import {
       }
     }
   
-    async function claim(activeAddress:string, receipent: string, tokenHash: string) {
+    async function claim(activeAddress:string, receipent: string, tokenHash: string, infonumber: number) {
       let txHash;
       let vestingManager = new VestingClient(
           NODE_ADDRESS,
@@ -196,7 +196,7 @@ import {
         );
       await vestingManager.setContractHash(vestingContractAddress);
       try {
-        txHash = await vestingManager.claim(CLPublicKey.fromHex(activeAddress), CLPublicKey.fromHex(receipent).toAccountHashStr(), tokenHash, TRANSFER_FEE);
+        txHash = await vestingManager.claim(CLPublicKey.fromHex(activeAddress), CLPublicKey.fromHex(receipent).toAccountHashStr(), tokenHash, infonumber, TRANSFER_FEE);
       } catch (err) {
         return;
       }
@@ -231,7 +231,7 @@ import {
       }
     }
 
-    async function getClaimableAmount(activeAddress:string, tokenHash: string) {
+    async function getClaimPeriod(activeAddress:string, tokenHash: string, infonumber: number) {
       let claimableamount;
       let vestingManager = new VestingClient(
           NODE_ADDRESS,
@@ -240,16 +240,49 @@ import {
         );
       await vestingManager.setContractHash(vestingContractAddress);
       try {
-        claimableamount = await vestingManager.claimableAmount(activeAddress, tokenHash);
-        console.log("claimableamount = ", claimableamount);
+        claimableamount = await vestingManager.claimperiod(activeAddress, tokenHash, infonumber);
         return claimableamount;
       } catch (err) {
         console.log("[useCasperWeb3Provider.js getClaimableAmount()] : ", err);
         return undefined;
       }
     }
-    
-    async function getVestedAmount(activeAddress:string, tokenHash: string) {
+
+    async function getClaimableAmount(activeAddress:string, tokenHash: string, infonumber: number) {
+      let claimableamount;
+      let vestingManager = new VestingClient(
+          NODE_ADDRESS,
+          CHAIN_NAME,
+          undefined
+        );
+      await vestingManager.setContractHash(vestingContractAddress);
+      try {
+        claimableamount = await vestingManager.claimableAmount(activeAddress, tokenHash, infonumber);
+        return claimableamount;
+      } catch (err) {
+        console.log("[useCasperWeb3Provider.js getClaimableAmount()] : ", err);
+        return undefined;
+      }
+    }
+            
+    async function getDuration(activeAddress:string, tokenHash: string, infonumber: number) {
+      let claimableamount;
+      let vestingManager = new VestingClient(
+          NODE_ADDRESS,
+          CHAIN_NAME,
+          undefined
+        );
+      await vestingManager.setContractHash(vestingContractAddress);
+      try {
+        claimableamount = await vestingManager.duration(activeAddress, tokenHash, infonumber);
+        return claimableamount;
+      } catch (err) {
+        console.log("[useCasperWeb3Provider.js getDuration()] : ", err);
+        return undefined;
+      }
+    }
+
+    async function getVestedAmount(activeAddress:string, tokenHash: string, infonumber: number) {
       let vestedamount;
       let vestingManager = new VestingClient(
           NODE_ADDRESS,
@@ -258,14 +291,14 @@ import {
         );
       await vestingManager.setContractHash(vestingContractAddress);
       try {
-        vestedamount = await vestingManager.vestedAmount(activeAddress, tokenHash);
+        vestedamount = await vestingManager.vestedAmount(activeAddress, tokenHash, infonumber);
         return vestedamount;
       } catch (err) {
         return undefined;
       }
     }
     
-    async function getLockedAmount(activeAddress:string, tokenHash: string) {
+    async function getLockedAmount(activeAddress:string, tokenHash: string, infonumber: number) {
       let lockamount;
       let vestingManager = new VestingClient(
           NODE_ADDRESS,
@@ -274,14 +307,14 @@ import {
         );
       await vestingManager.setContractHash(vestingContractAddress);
       try {
-        lockamount = await vestingManager.lockedAmount(activeAddress, tokenHash);
+        lockamount = await vestingManager.lockedAmount(activeAddress, tokenHash, infonumber);
         return lockamount;
       } catch (err) {
         return undefined;
       }
     }
 
-    async function getHourlyVesting(activeAddress:string, tokenHash: string) {
+    async function getHourlyVesting(activeAddress:string, tokenHash: string, infonumber: number) {
       let lockamount;
       let vestingManager = new VestingClient(
           NODE_ADDRESS,
@@ -290,7 +323,39 @@ import {
         );
       await vestingManager.setContractHash(vestingContractAddress);
       try {
-        lockamount = await vestingManager.hourlyVestAmount(activeAddress, tokenHash);
+        lockamount = await vestingManager.hourlyVestAmount(activeAddress, tokenHash, infonumber);
+        return lockamount;
+      } catch (err) {
+        return undefined;
+      }
+    }
+
+    async function getUserInfoCount(activeAddress:string, tokenHash: string) {
+      let lockamount;
+      let vestingManager = new VestingClient(
+          NODE_ADDRESS,
+          CHAIN_NAME,
+          undefined
+        );
+      await vestingManager.setContractHash(vestingContractAddress);
+      try {
+        lockamount = await vestingManager.vestingInforCount(activeAddress, tokenHash);
+        return lockamount;
+      } catch (err) {
+        return undefined;
+      }
+    }
+
+    async function getLockTimestamp(activeAddress:string, tokenHash: string, infonumber: number) {
+      let lockamount;
+      let vestingManager = new VestingClient(
+          NODE_ADDRESS,
+          CHAIN_NAME,
+          undefined
+        );
+      await vestingManager.setContractHash(vestingContractAddress);
+      try {
+        lockamount = await vestingManager.locktime(activeAddress, tokenHash, infonumber);
         return lockamount;
       } catch (err) {
         return undefined;
@@ -313,7 +378,11 @@ import {
       getVestedAmount,
       getLockedAmount,
       getHourlyVesting,
-      calc_claimable_amount
+      calc_claimable_amount,
+      getClaimPeriod,
+      getUserInfoCount,
+      getLockTimestamp,
+      getDuration
     };
   }
   

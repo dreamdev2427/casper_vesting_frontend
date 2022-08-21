@@ -4,6 +4,7 @@ import {
     CLU256,
     CLString,
     CLU64,
+    CLU32,
 } from "casper-js-sdk";
 import { BigNumberish } from "@ethersproject/bignumber";
 import { helpers, constants, utils } from "casper-js-client-helper";
@@ -67,13 +68,53 @@ export class VestingClient extends ContractClient {
             ["total_lock_amount"]
         );
     }
-    
-    async claimableAmount(activeAddress: string, tokenHash: string) {
+
+    async vestingInforCount(activeAddress: string, tokenHash: string) {        
         const clPubKey = CLPublicKey.fromHex(activeAddress);
-        const prefix = clPubKey.toAccountHashStr().substring(13, 29);
+        const prefix = clPubKey.toAccountHashStr().substring(13, 28);
         const suffix = tokenHash.substring(0,15);
 
         const itemHash = prefix+suffix;
+        try {
+            const result = await utils.contractDictionaryGetter(
+                this.nodeAddress,
+                itemHash,
+                urfOfUserInfo
+            );
+            let userInfo: any = result;
+            return userInfo;
+        }
+        catch (error: any) {
+            return undefined;
+        }
+    }
+        
+    async duration(activeAddress: string, tokenHash: string, infonumber: number) {
+        const clPubKey = CLPublicKey.fromHex(activeAddress);
+        const prefix = clPubKey.toAccountHashStr().substring(13, 28);
+        const suffix = tokenHash.substring(0,15);
+
+        const itemHash = prefix+suffix+infonumber.toString();
+        try {
+            const result = await utils.contractDictionaryGetter(
+                this.nodeAddress,
+                itemHash+"6",
+                urfOfUserInfo
+            );
+            let userInfo: any = result;
+            return userInfo;
+        }
+        catch (error: any) {
+            return undefined;
+        }
+    }
+
+    async claimableAmount(activeAddress: string, tokenHash: string, infonumber: number) {
+        const clPubKey = CLPublicKey.fromHex(activeAddress);
+        const prefix = clPubKey.toAccountHashStr().substring(13, 28);
+        const suffix = tokenHash.substring(0,15);
+
+        const itemHash = prefix+suffix+infonumber.toString();
         try {
             const result = await utils.contractDictionaryGetter(
                 this.nodeAddress,
@@ -88,12 +129,52 @@ export class VestingClient extends ContractClient {
         }
     }
 
-    async vestedAmount(activeAddress: string, tokenHash: string) {       
+    async claimperiod(activeAddress: string, tokenHash: string, infonumber: number) {
         const clPubKey = CLPublicKey.fromHex(activeAddress);
-        const prefix = clPubKey.toAccountHashStr().substring(13, 29);
+        const prefix = clPubKey.toAccountHashStr().substring(13, 28);
         const suffix = tokenHash.substring(0,15);
 
-        const itemHash = prefix+suffix;
+        const itemHash = prefix+suffix+infonumber.toString();
+        try {
+            const result = await utils.contractDictionaryGetter(
+                this.nodeAddress,
+                itemHash+"4",
+                urfOfUserInfo
+            );
+            let userInfo: any = result;
+            return userInfo;
+        }
+        catch (error: any) {
+            return undefined;
+        }
+    }
+
+    async locktime(activeAddress: string, tokenHash: string, infonumber: number) {       
+        const clPubKey = CLPublicKey.fromHex(activeAddress);
+        const prefix = clPubKey.toAccountHashStr().substring(13, 28);
+        const suffix = tokenHash.substring(0,15);
+
+        const itemHash = prefix+suffix+infonumber.toString();
+        try {
+            const result = await utils.contractDictionaryGetter(
+                this.nodeAddress,
+                itemHash+"0",
+                urfOfUserInfo
+            );
+            let userInfo: any = result;
+            return userInfo;
+        }
+        catch (error: any) {
+            return undefined;
+        }
+    }
+
+    async vestedAmount(activeAddress: string, tokenHash: string, infonumber: number) {       
+        const clPubKey = CLPublicKey.fromHex(activeAddress);
+        const prefix = clPubKey.toAccountHashStr().substring(13, 28);
+        const suffix = tokenHash.substring(0,15);
+
+        const itemHash = prefix+suffix+infonumber.toString();
         try {
             const result = await utils.contractDictionaryGetter(
                 this.nodeAddress,
@@ -108,12 +189,12 @@ export class VestingClient extends ContractClient {
         }
     }
         
-    async lockedAmount(activeAddress: string, tokenHash: string) {       
+    async lockedAmount(activeAddress: string, tokenHash: string, infonumber: number) {       
         const clPubKey = CLPublicKey.fromHex(activeAddress);
-        const prefix = clPubKey.toAccountHashStr().substring(13, 29);
+        const prefix = clPubKey.toAccountHashStr().substring(13, 28);
         const suffix = tokenHash.substring(0,15);
 
-        const itemHash = prefix+suffix;
+        const itemHash = prefix+suffix+infonumber.toString();
         try {
             const result = await utils.contractDictionaryGetter(
                 this.nodeAddress,
@@ -128,12 +209,12 @@ export class VestingClient extends ContractClient {
         }
     }
     
-    async hourlyVestAmount(activeAddress: string, tokenHash: string) {    
+    async hourlyVestAmount(activeAddress: string, tokenHash: string, infonumber: number) {    
         const clPubKey = CLPublicKey.fromHex(activeAddress);
-        const prefix = clPubKey.toAccountHashStr().substring(13, 29);
+        const prefix = clPubKey.toAccountHashStr().substring(13, 28);
         const suffix = tokenHash.substring(0,15);
 
-        const itemHash = prefix+suffix;
+        const itemHash = prefix+suffix+infonumber.toString();
         try {
             const result = await utils.contractDictionaryGetter(
                 this.nodeAddress,
@@ -159,6 +240,7 @@ export class VestingClient extends ContractClient {
         ttl = DEFAULT_TTL
     ) {
         const runtimeArgs = RuntimeArgs.fromMap({
+            "cliff_utimestamp": new CLU64(Date.now()),
             "cliff_durtime": new CLU64(cliff_durtime),
             "cliff_amount": new CLU256(cliff_amount),
             "unit_time": new CLU64(unit_time),
@@ -181,12 +263,14 @@ export class VestingClient extends ContractClient {
         publicKey: CLPublicKey,
         recipient: string,
         token_hash: string,
+        infonumber: number,
         paymentAmount: BigNumberish,
         ttl = DEFAULT_TTL
     ) {
         const runtimeArgs = RuntimeArgs.fromMap({
             "recipient": new CLString(recipient.toString()),
             "token-hash": new CLString("contract-"+token_hash.toString()),
+            "vest_id": new CLU32(infonumber),
             "uparse": new CLU64("10")
         });
 
@@ -200,7 +284,6 @@ export class VestingClient extends ContractClient {
             ttl,
         } as VestingClient.ContractCallWithSignerPayload);
     }
-
     
     async claimable_amount(
         publicKey: CLPublicKey,
