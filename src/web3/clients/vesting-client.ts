@@ -94,7 +94,7 @@ export class VestingClient extends ContractClient {
         const prefix = clPubKey.toAccountHashStr().substring(13, 28);
         const suffix = tokenHash.substring(0,15);
 
-        const itemHash = prefix+suffix+infonumber.toString();
+        const itemHash = prefix+suffix+String.fromCharCode(infonumber+Number(48));
         try {
             const result = await utils.contractDictionaryGetter(
                 this.nodeAddress,
@@ -114,7 +114,7 @@ export class VestingClient extends ContractClient {
         const prefix = clPubKey.toAccountHashStr().substring(13, 28);
         const suffix = tokenHash.substring(0,15);
 
-        const itemHash = prefix+suffix+infonumber.toString();
+        const itemHash = prefix+suffix+String.fromCharCode(infonumber+Number(48));
         try {
             const result = await utils.contractDictionaryGetter(
                 this.nodeAddress,
@@ -134,7 +134,7 @@ export class VestingClient extends ContractClient {
         const prefix = clPubKey.toAccountHashStr().substring(13, 28);
         const suffix = tokenHash.substring(0,15);
 
-        const itemHash = prefix+suffix+infonumber.toString();
+        const itemHash = prefix+suffix+String.fromCharCode(infonumber+Number(48));
         try {
             const result = await utils.contractDictionaryGetter(
                 this.nodeAddress,
@@ -154,7 +154,7 @@ export class VestingClient extends ContractClient {
         const prefix = clPubKey.toAccountHashStr().substring(13, 28);
         const suffix = tokenHash.substring(0,15);
 
-        const itemHash = prefix+suffix+infonumber.toString();
+        const itemHash = prefix+suffix+String.fromCharCode(infonumber+Number(48));
         try {
             const result = await utils.contractDictionaryGetter(
                 this.nodeAddress,
@@ -174,7 +174,7 @@ export class VestingClient extends ContractClient {
         const prefix = clPubKey.toAccountHashStr().substring(13, 28);
         const suffix = tokenHash.substring(0,15);
 
-        const itemHash = prefix+suffix+infonumber.toString();
+        const itemHash = prefix+suffix+String.fromCharCode(infonumber+Number(48));
         try {
             const result = await utils.contractDictionaryGetter(
                 this.nodeAddress,
@@ -194,7 +194,8 @@ export class VestingClient extends ContractClient {
         const prefix = clPubKey.toAccountHashStr().substring(13, 28);
         const suffix = tokenHash.substring(0,15);
 
-        const itemHash = prefix+suffix+infonumber.toString();
+        const itemHash = prefix+suffix+String.fromCharCode(infonumber+Number(48));
+        console.log("itemHash = ", itemHash);
         try {
             const result = await utils.contractDictionaryGetter(
                 this.nodeAddress,
@@ -214,7 +215,7 @@ export class VestingClient extends ContractClient {
         const prefix = clPubKey.toAccountHashStr().substring(13, 28);
         const suffix = tokenHash.substring(0,15);
 
-        const itemHash = prefix+suffix+infonumber.toString();
+        const itemHash = prefix+suffix+String.fromCharCode(infonumber+Number(48));
         try {
             const result = await utils.contractDictionaryGetter(
                 this.nodeAddress,
