@@ -70,7 +70,7 @@ const Vesting = () => {
         let interval = 0;
         setTimeout(() => {
             interval = setInterval(() => {
-                if(!!activeAddress && activeAddress !== "" && !!VestingTokenHash && VestingTokenHash) {
+                if(!!activeAddress && activeAddress !== "" && !!VestingTokenHash && VestingTokenHash && working === false) {
                     initializeInformation();
                 }
             }, 600000);
@@ -86,6 +86,7 @@ const Vesting = () => {
             let vestable_till_now = releaseamountperhour * past_hours;
             if(vestable_till_now > lockedamount) vestable_till_now = lockedamount;
             calsResult = vestable_till_now - vestedamount*(10**vestingTokenDecimal);
+            if(calsResult<0) calsResult = 0;
         }
         return calsResult;
     }
@@ -157,14 +158,14 @@ const Vesting = () => {
                 for(let idx=0; idx<infoCount; idx++)
                 {
                     tempUserInfo[idx] = {
-                        locktimestamp: values[idx*4] ? Number(values[idx*4]._hex) : 0,
-                        lockedamount: values[idx*4+1] ? Number(values[idx*4+1]._hex)/(10**vestingTokenDecimal) : 0,
-                        hourlyvesting: values[idx*4+2] ? Number(values[idx*4+2]._hex)/(10**vestingTokenDecimal) : 0,
-                        claimperiod: values[idx*4+3] ? Number(values[idx*4+3]._hex) : 0,           
-                        duration: values[idx*4+4] ? Number(values[idx*4+4]._hex) : 0,  
-                        vestedamount: values[idx*4+5] ? Number(values[idx*4+5]._hex)/(10**vestingTokenDecimal) : 0,
+                        locktimestamp: values[idx*6] ? Number(values[idx*6]._hex) : 0,
+                        lockedamount: values[idx*6+1] ? Number(values[idx*6+1]._hex)/(10**vestingTokenDecimal) : 0,
+                        hourlyvesting: values[idx*6+2] ? Number(values[idx*6+2]._hex)/(10**vestingTokenDecimal) : 0,
+                        claimperiod: values[idx*6+3] ? Number(values[idx*6+3]._hex) : 0,           
+                        duration: values[idx*6+4] ? Number(values[idx*6+4]._hex) : 0,  
+                        vestedamount: values[idx*6+5] ? Number(values[idx*6+5]._hex)/(10**vestingTokenDecimal) : 0,
                         claimableamount:                  
-                            calculateClaimableAmount(Number(values[idx*4]._hex), Number(values[idx*4+3]._hex), Number(values[idx*4+2]._hex)/(10**vestingTokenDecimal), Number(values[idx*4+1]._hex), Number(values[idx*4+5]._hex)/(10**vestingTokenDecimal))/(10**vestingTokenDecimal)
+                            calculateClaimableAmount(Number(values[idx*6]._hex), Number(values[idx*6+3]._hex), Number(values[idx*6+2]._hex)/(10**vestingTokenDecimal), Number(values[idx*6+1]._hex), Number(values[idx*6+5]._hex)/(10**vestingTokenDecimal))/(10**vestingTokenDecimal)
                     }              
                 }
                 console.log(tempUserInfo);  
@@ -248,7 +249,7 @@ const Vesting = () => {
     }
 
     return (
-        <div style={{ width: '100%', display: 'flex', height:"95vh", flexDirection: 'column' }}>
+        <div style={{ width: '100%', display: 'flex', minHeight:"95vh", flexDirection: 'column' }}>
             <Grid container justifyContent='center' style={{flex:1}} p={4}>
                 <Grid item sm={12} md={10} lg={10} xl={10} style={{ border: '2px solid white',flex:1 }}>
                     <Grid container pt={2} alignItems='center' justifyContent='space-around'>
