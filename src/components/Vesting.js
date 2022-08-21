@@ -60,8 +60,8 @@ const Vesting = () => {
       }
 
     useEffect(() => {        
-      if(!!activeAddress && activeAddress !== "" && activeAddress !== prevActiveAddress || 
-      !!VestingTokenHash && VestingTokenHash !== "" && VestingTokenHash !== prevVestingTokenHash) {
+      if(activeAddress !== "" && activeAddress !== prevActiveAddress || 
+        VestingTokenHash !== "" && VestingTokenHash !== prevVestingTokenHash) {
         initializeInformation();
       }
     }, [activeAddress, VestingTokenHash])
@@ -421,7 +421,8 @@ const Vesting = () => {
                                              onClick={() => {handleVest()}}
                                             >Vest {vestingTokenSymbol}</Button>
                                         </>
-                                    ) : (<>
+                                    ) : (
+                                    <div style={{maxHeight:'450px', overflowY:"scroll"}}>
                                         {
                                             userInfo.map((item, index) => (
                                                 <Grid container key={index} alignItems='center' mb={2} py={2} justifyContent='space-between' 
@@ -453,7 +454,7 @@ const Vesting = () => {
                                                 </Grid>
                                             ))
                                         }
-                                    </>)}
+                                    </div>)}
                                 </Box>
                             </Grid>
                         </Grid>
