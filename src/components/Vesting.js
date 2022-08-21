@@ -93,6 +93,7 @@ const Vesting = () => {
 
     const initializeInformation = async () => {           
         setWorking(true);     
+        setUserInfo([]);
         let promiseArray = [], infoCount = 0;
         promiseArray.push(totalVestingAmount(vestingContractAddress));
         promiseArray.push(getSymbol(VestingTokenHash, activeAddress));
