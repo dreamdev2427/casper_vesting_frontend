@@ -85,7 +85,7 @@ const Vesting = () => {
             let past_hours = (Date.now() * 1000 - locktimestamp)/releasetimeunit;
             let vestable_till_now = releaseamountperhour * past_hours;
             if(vestable_till_now > lockedamount) vestable_till_now = lockedamount;
-            calsResult = vestable_till_now - vestedamount;
+            calsResult = vestable_till_now - vestedamount*(10**vestingTokenDecimal);
         }
         return calsResult;
     }
@@ -131,7 +131,6 @@ const Vesting = () => {
             if(values[5]) 
             {
                 temp = Number(values[5]._hex);
-                console.log("userinfocount = ", temp);
                 infoCount = temp;    
             }
         })
